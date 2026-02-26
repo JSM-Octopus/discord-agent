@@ -93,14 +93,14 @@ async function bootstrap() {
 
     const TARGET_WA = MY_WHATSAPP_NUMBER || "48601926367";
 
-    sendEmail(transporter, 'michal.s.limeacademy@gmail.com', 'Octopus watchdog restarted!', '', undefined);
+    sendEmail(transporter, 'michal.s.limeacademy@gmail.com', 'Octopus Notifier restarted!', '', undefined);
 
     // --- WHATSAPP SETUP ---
     waClient.on('qr', (qr) => qrcode.generate(qr, { small: true }));
     waClient.on('ready', () => {
         waService.sendMessage(
             TARGET_WA,
-            `⚠️ Octopus watchdog restarted!`
+            `⚠️ Octopus Notifier restarted!`
         ).catch(() => {
             console.error('Bład przy wysylce whatsapp');
         })
