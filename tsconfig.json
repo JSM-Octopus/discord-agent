@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        // File Layout
+        "rootDir": "./src", // Tu masz swoje pliki .ts
+        "outDir": "./dist", // Tu trafi skompilowany JavaScript
+        // Environment Settings
+        "module": "nodenext",
+        "target": "esnext",
+        "types": [
+            "node"
+        ], // Dodaj node, aby obsługiwać process.env itp.
+        // Other Outputs
+        "sourceMap": true,
+        "declaration": true,
+        "declarationMap": true,
+        // Stricter Typechecking Options
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        // Recommended Options
+        "strict": true,
+        "jsx": "react-jsx",
+        "verbatimModuleSyntax": true,
+        "isolatedModules": true,
+        "noUncheckedSideEffectImports": true,
+        "moduleDetection": "force",
+        "skipLibCheck": true
+    },
+    "include": [
+        "src/**/*"
+    ]
+}
