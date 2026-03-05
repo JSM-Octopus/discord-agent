@@ -69,9 +69,9 @@ async function bootstrap() {
     const octopus = new OctopusService(OCTOPUS_URL);
 
     // Zmieniona struktura Mapy: ID wiadomości -> { moneta, tablica par {maszyna, commonId} }
-    const activePositions = new Map<string, { 
-        coin: string; 
-        placements: { xMachineId: string; commonId: string }[] 
+    const activePositions = new Map<string, {
+        coin: string;
+        placements: { xMachineId: string; commonId: string }[]
     }>();
 
     const CHANNELS = {
@@ -106,36 +106,45 @@ async function bootstrap() {
                 const result = await parser.parseSignal(fullText);
 
                 if (result.action === 'OPEN') {
-                    const placements: { xMachineId: string; commonId: string }[] = [];
-
-                    // Otwieramy pozycję na każdej maszynie
-                    for (const xMachineId of xMachineIds) {
-                        try {
+                    // Wysyłamy wszystkie zapytania jednocześnie
+                    const results = await Promise.allSettled(
+                        xMachineIds.map(async (xMachineId) => {
                             const commonId = await octopus.executeNewOrder(result, xMachineId);
-                            placements.push({ xMachineId, commonId });
+                            return { xMachineId, commonId };
+                        })
+                    );
 
-                            const body = `🚀 *OPEN* | ${result.coin}\nID: ${commonId}\nMachine: ${xMachineId}`;
-                            await waService.sendMessage(TARGET_WA, body);
-                        } catch (err) {
-                            console.error(`Błąd otwierania dla ${xMachineId}:`, err);
+                    const successfulPlacements: { xMachineId: string; commonId: string }[] = [];
+
+                    // Iterujemy po wynikach, aby obsłużyć sukcesy i błędy
+                    results.forEach((res, index) => {
+                        if (res.status === 'fulfilled') {
+                            const data = res.value;
+                            successfulPlacements.push(data);
+
+                            // Powiadomienie WA wysyłane w tle
+                            waService.sendMessage(TARGET_WA, `🚀 *OPEN* | ${result.coin}\nID: ${data.commonId}\nMachine: ${data.xMachineId}`)
+                                .catch(err => console.error(`Błąd WA:`, err.message));
+                        } else {
+                            // Tutaj masz dostęp do powodu błędu: res.reason
+                            console.error(`❌ Maszyna ${xMachineIds[index]} zawiodła:`, res.reason?.message || res.reason);
                         }
-                    }
+                    });
 
-                    if (placements.length > 0) {
+                    if (successfulPlacements.length > 0) {
                         activePositions.set(message.id, {
                             coin: result.coin,
-                            placements
+                            placements: successfulPlacements
                         });
                     }
-                }
-                else if (['CLOSE_PARTIALLY', 'STOP_LOSS', 'CLOSE'].includes(result.action)) {
+                } else if (['CLOSE_PARTIALLY', 'STOP_LOSS', 'CLOSE'].includes(result.action)) {
                     const refId = message.reference?.messageId;
                     const position = refId ? activePositions.get(refId) : null;
 
                     if (position) {
-                        // Aktualizujemy pozycję na wszystkich maszynach, które ją otworzyły
-                        for (const placement of position.placements) {
-                            try {
+                        // Równoległy update wszystkich maszyn
+                        const updateResults = await Promise.allSettled(
+                            position.placements.map(async (placement) => {
                                 await octopus.handleExistingPosition(
                                     result.action as any,
                                     position.coin,
@@ -143,13 +152,19 @@ async function bootstrap() {
                                     placement.xMachineId,
                                     result.value
                                 );
+                                return placement;
+                            })
+                        );
 
-                                const body = `⚡ *UPDATE* | ${result.action} dla ${position.coin}\nID: ${placement.commonId}\nMachine: ${placement.xMachineId}`;
-                                await waService.sendMessage(TARGET_WA, body);
-                            } catch (err) {
-                                console.error(`Błąd update dla ${placement.xMachineId}:`, err);
+                        updateResults.forEach((res, index) => {
+                            const placement = position.placements[index];
+                            if (res.status === 'fulfilled') {
+                                waService.sendMessage(TARGET_WA, `⚡ *UPDATE* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}`)
+                                    .catch(err => console.error(`Błąd WA:`, err.message));
+                            } else {
+                                console.error(`❌ Błąd update dla ${placement?.xMachineId}:`, res.reason);
                             }
-                        }
+                        });
                     }
                 }
             }
