@@ -10,16 +10,21 @@ export class OctopusService {
     constructor(private readonly baseUrl: string) {}
 
     /**
-     * Otwiera nową pozycję
+     * Otwiera nową pozycję z dynamicznym ID maszyny
      */
-    public async executeNewOrder(signal: any): Promise<string> {
+    public async executeNewOrder(signal: any, xMachineId: string): Promise<string> {
         try {
             const { data } = await axios.post(
                 `${this.baseUrl}/investing/orders/new`,
                 signal,
-                { headers: this.headers }
+                { 
+                    headers: { 
+                        ...this.headers, 
+                        'x-machine-id': xMachineId 
+                    } 
+                }
             );
-            return data; // Zwraca commonId
+            return data;
         } catch (error: any) {
             console.error('[Octopus] Error NEW:', error.response?.data || error.message);
             throw error;
@@ -27,17 +32,22 @@ export class OctopusService {
     }
 
     /**
-     * Uniwersalna metoda do modyfikacji pozycji
+     * Uniwersalna metoda do modyfikacji pozycji z dynamicznym ID maszyny
      */
     public async handleExistingPosition(
         action: 'CLOSE_PARTIALLY' | 'STOP_LOSS' | 'CLOSE',
         coin: string,
         commonId: string,
+        xMachineId: string,
         value?: number
     ): Promise<void> {
         const urlBase = `${this.baseUrl}/investing/positions/${coin}`;
         const config = { 
-            headers: { ...this.headers, 'x-common-id': commonId } 
+            headers: { 
+                ...this.headers, 
+                'x-machine-id': xMachineId,
+                'x-common-id': commonId 
+            } 
         };
 
         try {

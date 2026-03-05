@@ -6,7 +6,6 @@ import qrcode from 'qrcode-terminal';
 import 'dotenv/config';
 import nodemailer from 'nodemailer';
 
-// Importy Twoich serwisów
 import { WhatsAppService } from './whatsapp.service.js';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
@@ -20,6 +19,8 @@ async function bootstrap() {
         BREVO
     } = process.env;
 
+    const xMachineIds = ['XDRLQO', 'YJZCPI'];
+
     if (!DISCORD_TOKEN || !OPENAI_API || !OCTOPUS_URL || !BREVO) {
         throw new Error("Brak wymaganych zmiennych w .env");
     }
@@ -27,21 +28,16 @@ async function bootstrap() {
     const transporter = nodemailer.createTransport({
         host: 'smtp-relay.brevo.com',
         port: 587,
-        secure: false, // true dla portu 465, false dla innych
+        secure: false,
         auth: {
             user: 'michal.s.limeacademy@gmail.com',
             pass: process.env.BREVO,
         },
     });
 
-    const sendEmail = async (transporter: {
-        sendMail: (arg0: {
-            from: string; // default from
-            to: any; subject: any; text: any; html: any;
-        }) => any;
-    }, to: any, subject: any, text: any, html: any) => {
+    const sendEmail = async (transporter: any, to: string, subject: string, text: string, html?: string) => {
         const mailOptions = {
-            from: '"DISCORD" <michal.s.limeacademy@gmail.com>', // default from
+            from: '"DISCORD" <michal.s.limeacademy@gmail.com>',
             to,
             subject,
             text,
@@ -58,32 +54,26 @@ async function bootstrap() {
         }
     };
 
-    // 1. Inicjalizacja instancji
     const openai = new OpenAI({ apiKey: OPENAI_API });
     const discordClient = new DiscordClient({ checkUpdate: false } as any);
     const waClient = new WAClient({
         authStrategy: new LocalAuth(),
         puppeteer: {
             headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage', // KRYTYCZNE: zapobiega crashom Chrome w kontenerze
-                '--disable-gpu'            // Oszczędza zasoby procesora na serwerze
-            ]
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
         }
     });
 
-    // 2. Inicjalizacja serwisów
     const waService = new WhatsAppService(waClient);
     const parser = new ParserService(openai);
     const octopus = new OctopusService(OCTOPUS_URL);
 
-    // 3. Mapa do korelacji sygnałów (ID wiadomości -> Dane pozycji)
-    // Zamiast modyfikować obiekt message, trzymamy dane tutaj.
-    const activePositions = new Map<string, { coin: string; commonId: string }>();
+    // Zmieniona struktura Mapy: ID wiadomości -> { moneta, tablica par {maszyna, commonId} }
+    const activePositions = new Map<string, { 
+        coin: string; 
+        placements: { xMachineId: string; commonId: string }[] 
+    }>();
 
-    // Konfiguracja kanałów
     const CHANNELS = {
         DZIK: '1120791815315001477',
         OGOLNY: '1033122700731887758',
@@ -95,28 +85,16 @@ async function bootstrap() {
 
     sendEmail(transporter, 'michal.s.limeacademy@gmail.com', 'Octopus Notifier restarted!', '', undefined);
 
-    // --- WHATSAPP SETUP ---
     waClient.on('qr', (qr) => qrcode.generate(qr, { small: true }));
     waClient.on('ready', () => {
-        waService.sendMessage(
-            TARGET_WA,
-            `⚠️ Octopus Notifier restarted!`
-        ).catch(() => {
-            console.error('Bład przy wysylce whatsapp');
-        })
+        waService.sendMessage(TARGET_WA, `⚠️ Octopus Notifier restarted!`).catch(console.error);
         console.log('✅ WhatsApp gotowy');
     });
 
-    waClient.on('disconnected', () => {
-        sendEmail(transporter, 'michal.s.limeacademy@gmail.com', 'Whatsapp disconnected!', '', undefined);
-    });
-
-    // --- DISCORD SETUP ---
     discordClient.on('ready', () => console.log(`✅ Discord zalogowany: ${discordClient.user?.tag}`));
 
     discordClient.on('messageCreate', async (message) => {
         try {
-            // SCENARIUSZ A: Sygnały tradingowe na kanale DZIK
             if (message.channel.id === CHANNELS.DZIK) {
                 let fullText = '';
                 if (message.embeds.length > 0) {
@@ -128,58 +106,62 @@ async function bootstrap() {
                 const result = await parser.parseSignal(fullText);
 
                 if (result.action === 'OPEN') {
-                    const commonId = await octopus.executeNewOrder(result);
+                    const placements: { xMachineId: string; commonId: string }[] = [];
 
-                    // Zapisujemy w mapie pod ID wiadomości z Discorda
-                    activePositions.set(message.id, {
-                        coin: result.coin,
-                        commonId
-                    });
+                    // Otwieramy pozycję na każdej maszynie
+                    for (const xMachineId of xMachineIds) {
+                        try {
+                            const commonId = await octopus.executeNewOrder(result, xMachineId);
+                            placements.push({ xMachineId, commonId });
 
-                    const body = `🚀 *OPEN* | ${result.coin}\nID: ${commonId}`
-                    await waService.sendMessage(TARGET_WA, body).catch(() => {
-                        sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Otwarcie pozycji] Wysyłka przez Whatsapp nie powiodla sie!', body, undefined);
-                    });
+                            const body = `🚀 *OPEN* | ${result.coin}\nID: ${commonId}\nMachine: ${xMachineId}`;
+                            await waService.sendMessage(TARGET_WA, body);
+                        } catch (err) {
+                            console.error(`Błąd otwierania dla ${xMachineId}:`, err);
+                        }
+                    }
+
+                    if (placements.length > 0) {
+                        activePositions.set(message.id, {
+                            coin: result.coin,
+                            placements
+                        });
+                    }
                 }
                 else if (['CLOSE_PARTIALLY', 'STOP_LOSS', 'CLOSE'].includes(result.action)) {
-                    // Sprawdzamy, czy ta wiadomość jest odpowiedzią na sygnał otwarcia
                     const refId = message.reference?.messageId;
                     const position = refId ? activePositions.get(refId) : null;
 
                     if (position) {
-                        await octopus.handleExistingPosition(
-                            result.action,
-                            position.coin,
-                            position.commonId,
-                            result.value
-                        );
+                        // Aktualizujemy pozycję na wszystkich maszynach, które ją otworzyły
+                        for (const placement of position.placements) {
+                            try {
+                                await octopus.handleExistingPosition(
+                                    result.action as any,
+                                    position.coin,
+                                    placement.commonId,
+                                    placement.xMachineId,
+                                    result.value
+                                );
 
-                        const body = `⚡ *UPDATE* | ${result.action} dla ${position.coin}\nID: ${position.commonId}`;
-                        await waService.sendMessage(TARGET_WA, body).catch(() => {
-                            sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Update pozycji] Wysyłka przez Whatsapp nie powiodla sie!', body, undefined);
-                        });
+                                const body = `⚡ *UPDATE* | ${result.action} dla ${position.coin}\nID: ${placement.commonId}\nMachine: ${placement.xMachineId}`;
+                                await waService.sendMessage(TARGET_WA, body);
+                            } catch (err) {
+                                console.error(`Błąd update dla ${placement.xMachineId}:`, err);
+                            }
+                        }
                     }
                 }
             }
-
-            // SCENARIUSZ B: Narzekania i szukanie klientów na innych kanałach
-            else if (message.channel.id === CHANNELS.OGOLNY || message.channel.id === CHANNELS.KRYPTO || message.channel.id === CHANNELS.PATRON) {
+            else if ([CHANNELS.OGOLNY, CHANNELS.KRYPTO, CHANNELS.PATRON].includes(message.channel.id)) {
                 const complain = await parser.lookForComplains(message.cleanContent);
-
                 if (complain.action === 'CALL') {
-                    console.log('Ktoś narzeka: ' + message.cleanContent);
                     const body = `⚠️ *POTENCJALNY KLIENT*\nUżytkownik: ${message.author.tag}\nWiadomość: ${message.cleanContent}\nPowód: ${complain.reasoning}`;
-                    await waService.sendMessage(
-                        TARGET_WA,
-                        body
-                    ).catch(() => {
-                        sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Ktos narzeka] Wysyłka przez Whatsapp nie powiodla sie!', body, undefined);
+                    await waService.sendMessage(TARGET_WA, body).catch(() => {
+                        sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Ktos narzeka] WhatsApp fail!', body);
                     });
-                } else {
-                    console.log('Nic waznego: ' + message.cleanContent);
                 }
             }
-
         } catch (err: any) {
             console.error("❌ Błąd procesowania wiadomości:", err.message);
         }
