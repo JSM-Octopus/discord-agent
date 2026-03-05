@@ -123,8 +123,10 @@ async function bootstrap() {
                             successfulPlacements.push(data);
 
                             // Powiadomienie WA wysyłane w tle
-                            waService.sendMessage(TARGET_WA, `🚀 *OPEN* | ${result.coin}\nID: ${data.commonId}\nMachine: ${data.xMachineId}`)
-                                .catch(err => console.error(`Błąd WA:`, err.message));
+                            const body = `🚀 *OPEN* | ${result.coin}\nID: ${data.commonId}\nMachine: ${data.xMachineId}`;
+                            waService.sendMessage(TARGET_WA, body).catch(() => {
+                                sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Open] WhatsApp fail!', body);
+                            });
                         } else {
                             // Tutaj masz dostęp do powodu błędu: res.reason
                             console.error(`❌ Maszyna ${xMachineIds[index]} zawiodła:`, res.reason?.message || res.reason);
@@ -159,8 +161,10 @@ async function bootstrap() {
                         updateResults.forEach((res, index) => {
                             const placement = position.placements[index];
                             if (res.status === 'fulfilled') {
-                                waService.sendMessage(TARGET_WA, `⚡ *UPDATE* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}`)
-                                    .catch(err => console.error(`Błąd WA:`, err.message));
+                                const body = `⚡ *UPDATE* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}`;
+                                waService.sendMessage(TARGET_WA, body).catch(() => {
+                                    sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Update] WhatsApp fail!', body);
+                                });
                             } else {
                                 console.error(`❌ Błąd update dla ${placement?.xMachineId}:`, res.reason);
                             }
