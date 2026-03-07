@@ -35,8 +35,8 @@ ZASADY ANALIZY I MAPOWANIA:
    - "Short/Sprzedaję" = side: "SELL", positionSide: "SHORT".
 
 LOGIKA WIELKOŚCI POZYCJI PROCENTOWO (Wartość 'percentage'):
-- DLA BTC = 7
-- DLA ETH = 4
+- DLA BTC = 20
+- DLA ETH = 10
 - INNE = 1
 
 LOGIKA LEVERAGE (Wartość 'leverage'):
