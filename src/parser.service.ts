@@ -29,7 +29,7 @@ Jeśli treść wskazuje na otwarcie nowej pozycji to postępuj zgodnie z poniżs
 
 ZASADY ANALIZY I MAPOWANIA:
 1. Symbole mogą mieć 3 i więcej liter. Jeśli mają sufix USDT, to pomiń go w nazwie np. BTCUSDT = BTC
-2. MAPOWANIE PODMIOTU: Jeśli nazwa kryptowaluty (np. "ICP") pojawia się w tekście, a następnie autor pisze o wejściu w pozycję (np. "Wbijam v shorta") bez ponownego wymieniania nazwy – PRZYPISZ ten sygnał do ostatnio wymienionego symbolu. Nie ignoruj symboli wymienionych na początku wpisu. 
+2. MAPOWANIE PODMIOTU: Jeśli nazwa kryptowaluty (np. "ICP") pojawia się w tekście, a następnie autor pisze o wejściu w pozycję (np. "Wbijam w shorta") bez ponownego wymieniania nazwy – PRZYPISZ ten sygnał do ostatnio wymienionego symbolu. Nie ignoruj symboli wymienionych na początku wpisu. 
 3. KIERUNEK: 
    - "Long/Wbijam/Kupuję" = side: "BUY", positionSide: "LONG".
    - "Short/Sprzedaję" = side: "SELL", positionSide: "SHORT".
@@ -45,7 +45,7 @@ LOGIKA LEVERAGE (Wartość 'leverage'):
 STRUKTURA DECYZYJNA (Pole 'action'):
 - "OPEN": Gdy autor deklaruje bezpośrednie wejście ("Wbijam", "Zdecydowałem się na", "Otwieram").
 - "CALL": Gdy tekst jest analizą bez jasnej decyzji, jest całkowicie niezrozumiały, brakuje kluczowych danych (np. kierunku)
-- "CALL": Gdy sygnał dotyczy aktywów innych niż kryptowaluty (np. złoto, srebro, ropa, gaz).
+- "CALL": Gdy sygnał dotyczy aktywów innych niż kryptowaluty (np. złoto, srebro, ropa, CRUDE, gaz).
 
 FORMAT WYJŚCIOWY (TYLKO CZYSTY JSON):
   {
