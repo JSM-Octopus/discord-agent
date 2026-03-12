@@ -21,7 +21,7 @@ async function bootstrap() {
 
     const xMachineIds: string[] = [];
 
-    xMachineIds.push('YJZCPI'); // inspiredByDzik
+    // xMachineIds.push('YJZCPI'); // inspiredByDzik
     xMachineIds.push('XDRLQO'); // inspiredBySliwa (to tylko nazwa maszyny, tak naprawde oba sa na dziku w tym kodzie)
 
     if (!DISCORD_TOKEN || !OPENAI_API || !OCTOPUS_URL || !BREVO) {
