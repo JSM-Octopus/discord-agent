@@ -19,7 +19,10 @@ async function bootstrap() {
         BREVO
     } = process.env;
 
-    const xMachineIds = ['XDRLQO', 'YJZCPI'];
+    const xMachineIds: string[] = [];
+
+    xMachineIds.push('YJZCPI'); // inspiredByDzik
+    xMachineIds.push('XDRLQO'); // inspiredBySliwa (to tylko nazwa maszyny, tak naprawde oba sa na dziku w tym kodzie)
 
     if (!DISCORD_TOKEN || !OPENAI_API || !OCTOPUS_URL || !BREVO) {
         throw new Error("Brak wymaganych zmiennych w .env");
