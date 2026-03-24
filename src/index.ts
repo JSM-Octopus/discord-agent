@@ -5,6 +5,7 @@ import nodemailer from 'nodemailer';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
 import { RabbitMotokoActor } from "./npm-package-rabbit-motoko/rabbit-motoko-actor.js";
+import { toJson } from "./npm-package-utils/utils.js";
 
 async function bootstrap() {
     const rabbitMotokoActor = new RabbitMotokoActor();
@@ -74,12 +75,14 @@ async function bootstrap() {
         KRYPTO: '1033122726967263353'
     };
 
-    const welcomeText = 'Octopus Notifier restarted!';
+    const welcomeText = 'Octopus Discord Agent restarted!';
 
     rabbitMotokoActor.addTask({
         channel: "1",
         payload: welcomeText
-    }).catch(() => {
+    }).catch((err) => {
+        console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Welcome]:");
+        console.log(toJson(err));
         sendEmail(transporter, 'michal.s.limeacademy@gmail.com', welcomeText, '', undefined);
     });
 
@@ -120,7 +123,9 @@ async function bootstrap() {
                             rabbitMotokoActor.addTask({
                                 channel: "1",
                                 payload: body
-                            }).catch(() => {
+                            }).catch((err) => {
+                                console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Open]:");
+                                console.log(toJson(err));
                                 sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Open] WhatsApp fail!', body);
                             });
                         } else {
@@ -161,7 +166,9 @@ async function bootstrap() {
                                 rabbitMotokoActor.addTask({
                                     channel: "1",
                                     payload: body
-                                }).catch(() => {
+                                }).catch((err) => {
+                                    console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Update]:");
+                                    console.log(toJson(err));
                                     sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Update] WhatsApp fail!', body);
                                 });
                             } else {
@@ -179,7 +186,9 @@ async function bootstrap() {
                     rabbitMotokoActor.addTask({
                         channel: "1",
                         payload: body
-                    }).catch(() => {
+                    }).catch((err) => {
+                        console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Ktos narzeka]:");
+                        console.log(toJson(err));
                         sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Ktos narzeka] WhatsApp fail!', body);
                     });
                 }
