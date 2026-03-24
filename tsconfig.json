@@ -10,9 +10,9 @@
             "node"
         ], // Dodaj node, aby obsługiwać process.env itp.
         // Other Outputs
-        "sourceMap": true,
-        "declaration": true,
-        "declarationMap": true,
+        "sourceMap": false,
+        "declaration": false,
+        "declarationMap": false,
         // Stricter Typechecking Options
         "noUncheckedIndexedAccess": true,
         "exactOptionalPropertyTypes": true,
@@ -23,7 +23,11 @@
         "isolatedModules": true,
         "noUncheckedSideEffectImports": true,
         "moduleDetection": "force",
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "moduleResolution": "NodeNext",
+        "allowImportingTsExtensions": false, // Zmień na false
+        "allowJs": true, // Ważne dla Twoich plików .did.js
+        "noEmit": false
     },
     "include": [
         "src/**/*"
