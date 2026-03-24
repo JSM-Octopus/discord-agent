@@ -75,9 +75,14 @@ async function bootstrap() {
         KRYPTO: '1033122726967263353'
     };
 
-    const TARGET_WA = MY_WHATSAPP_NUMBER || "48601926367";
+    const welcomeText = 'Octopus Notifier restarted!';
 
-    sendEmail(transporter, 'michal.s.limeacademy@gmail.com', 'Octopus Notifier restarted!', '', undefined);
+    rabbitMotokoActor.addTask({
+        channel: "1",
+        payload: welcomeText
+    }).catch(() => {
+        sendEmail(transporter, 'michal.s.limeacademy@gmail.com', welcomeText, '', undefined);
+    });
 
     discordClient.on('ready', () => console.log(`✅ Discord zalogowany: ${discordClient.user?.tag}`));
 

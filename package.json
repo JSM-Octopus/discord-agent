@@ -13,6 +13,7 @@
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "dependencies": {
+        "@dfinity/agent": "^3.4.3",
         "axios": "^1.13.2",
         "discord.js-selfbot-v13": "^3.7.1",
         "dotenv": "^17.2.3",
