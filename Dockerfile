@@ -62,11 +62,6 @@ RUN npm install --omit=dev
 
 # Kopiujemy skompilowany kod z pierwszego etapu
 COPY --from=builder /app/dist ./dist
-# Kopiujemy ewentualne inne potrzebne pliki (np. deklaracje, jeśli są wymagane w runtime)
-# COPY --from=builder /app/src/declarations ./dist/declarations
-
-# Instalacja przeglądarki dla Puppeteera
-RUN npx puppeteer browsers install chrome
 
 # Uruchamiamy czystym nodem z folderu dist
 CMD ["node", "dist/index.js"]
