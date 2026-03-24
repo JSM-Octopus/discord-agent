@@ -1,16 +1,15 @@
 import { OpenAI } from "openai";
 import { Client as DiscordClient } from 'discord.js-selfbot-v13';
-import pkg from 'whatsapp-web.js';
-const { Client: WAClient, LocalAuth } = pkg;
 import qrcode from 'qrcode-terminal';
 import 'dotenv/config';
 import nodemailer from 'nodemailer';
-
-import { WhatsAppService } from './whatsapp.service.js';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
+import { RabbitMotokoActor } from "./npm-package-rabbit-motoko/rabbit-motoko-actor.js";
 
 async function bootstrap() {
+    const rabbitMotokoActor = new RabbitMotokoActor();
+
     const {
         DISCORD_TOKEN,
         OPENAI_API,
@@ -59,15 +58,7 @@ async function bootstrap() {
 
     const openai = new OpenAI({ apiKey: OPENAI_API });
     const discordClient = new DiscordClient({ checkUpdate: false } as any);
-    const waClient = new WAClient({
-        authStrategy: new LocalAuth(),
-        puppeteer: {
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
-        }
-    });
 
-    const waService = new WhatsAppService(waClient);
     const parser = new ParserService(openai);
     const octopus = new OctopusService(OCTOPUS_URL);
 
@@ -87,12 +78,6 @@ async function bootstrap() {
     const TARGET_WA = MY_WHATSAPP_NUMBER || "48601926367";
 
     sendEmail(transporter, 'michal.s.limeacademy@gmail.com', 'Octopus Notifier restarted!', '', undefined);
-
-    waClient.on('qr', (qr) => qrcode.generate(qr, { small: true }));
-    waClient.on('ready', () => {
-        waService.sendMessage(TARGET_WA, `⚠️ Octopus Notifier restarted!`).catch(console.error);
-        console.log('✅ WhatsApp gotowy');
-    });
 
     discordClient.on('ready', () => console.log(`✅ Discord zalogowany: ${discordClient.user?.tag}`));
 
@@ -127,7 +112,11 @@ async function bootstrap() {
 
                             // Powiadomienie WA wysyłane w tle
                             const body = `🚀 *OPEN* | ${result.coin}\nID: ${data.commonId}\nMachine: ${data.xMachineId}`;
-                            waService.sendMessage(TARGET_WA, body).catch(() => {
+
+                            rabbitMotokoActor.addTask({
+                                channel: "1",
+                                payload: body
+                            }).catch(() => {
                                 sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Open] WhatsApp fail!', body);
                             });
                         } else {
@@ -165,7 +154,10 @@ async function bootstrap() {
                             const placement = position.placements[index];
                             if (res.status === 'fulfilled') {
                                 const body = `⚡ *UPDATE* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}`;
-                                waService.sendMessage(TARGET_WA, body).catch(() => {
+                                rabbitMotokoActor.addTask({
+                                    channel: "1",
+                                    payload: body
+                                }).catch(() => {
                                     sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Update] WhatsApp fail!', body);
                                 });
                             } else {
@@ -180,7 +172,10 @@ async function bootstrap() {
                 console.log(message.cleanContent);
                 if (complain.action === 'CALL') {
                     const body = `⚠️ *POTENCJALNY KLIENT*\nUżytkownik: ${message.author.tag}\nWiadomość: ${message.cleanContent}\nPowód: ${complain.reasoning}`;
-                    await waService.sendMessage(TARGET_WA, body).catch(() => {
+                    rabbitMotokoActor.addTask({
+                        channel: "1",
+                        payload: body
+                    }).catch(() => {
                         sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Ktos narzeka] WhatsApp fail!', body);
                     });
                 }
@@ -190,7 +185,6 @@ async function bootstrap() {
         }
     });
 
-    waClient.initialize();
     discordClient.login(DISCORD_TOKEN);
 }
 
