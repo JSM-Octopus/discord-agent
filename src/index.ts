@@ -1,6 +1,5 @@
 import { OpenAI } from "openai";
 import { Client as DiscordClient } from 'discord.js-selfbot-v13';
-import qrcode from 'qrcode-terminal';
 import 'dotenv/config';
 import nodemailer from 'nodemailer';
 import { ParserService } from './parser.service.js';
