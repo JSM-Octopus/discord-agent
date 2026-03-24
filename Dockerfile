@@ -1,6 +1,18 @@
+# ETAP 1: Build (Kompilacja TS -> JS)
+FROM node:20-slim AS builder
+
+WORKDIR /app
+COPY package*.json ./
+# Instalujemy wszystkie zależności (w tym typescript i devDependencies)
+RUN npm install
+COPY . .
+# Kompilujemy projekt do folderu dist/
+RUN npm run build
+
+# ETAP 2: Produkcja (Tylko runtime)
 FROM node:20-slim
 
-# Instalacja bibliotek systemowych potrzebnych dla Chrome
+# Instalacja bibliotek systemowych dla Chrome (Puppeteer)
 RUN apt-get update && apt-get install -y \
     fonts-liberation \
     libasound2 \
@@ -42,13 +54,19 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# Kopiujemy tylko pliki package.json
 COPY package*.json ./
-# Instalacja paczek (pobierze puppeteera jako zależność whatsapp-web.js)
-RUN npm install
 
-COPY . .
+# Instalujemy TYLKO zależności produkcyjne (bez TS, tsx itp.)
+RUN npm install --omit=dev
 
-# Ważne: whatsapp-web.js potrzebuje Chrome
+# Kopiujemy skompilowany kod z pierwszego etapu
+COPY --from=builder /app/dist ./dist
+# Kopiujemy ewentualne inne potrzebne pliki (np. deklaracje, jeśli są wymagane w runtime)
+# COPY --from=builder /app/src/declarations ./dist/declarations
+
+# Instalacja przeglądarki dla Puppeteera
 RUN npx puppeteer browsers install chrome
 
-CMD ["npm", "start"]
+# Uruchamiamy czystym nodem z folderu dist
+CMD ["node", "dist/index.js"]
