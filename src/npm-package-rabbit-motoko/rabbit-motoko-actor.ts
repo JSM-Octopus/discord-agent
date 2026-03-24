@@ -16,11 +16,6 @@ export class RabbitMotokoActor {
     constructor() {
         const agent = new HttpAgent({ host: this.host });
 
-        // In local development uncomment this:
-        // if (this.host.includes("localhost") || this.host.includes("127.0.0.1")) {
-        //   agent.fetchRootKey().catch(console.error);
-        // }
-
         this.actor = Actor.createActor<_SERVICE>(idlFactory, {
             agent,
             canisterId: this.canisterId,
