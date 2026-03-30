@@ -1,3 +1,4 @@
+import axios from "axios";
 import crypto from "crypto";
 
 export function hashTo6Upper(input: string): string {
@@ -60,7 +61,7 @@ export function toJson(data: any): string {
 }
 
 export function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function bigintReplacer(_key: string, value: any) {
@@ -73,4 +74,31 @@ export function isUON(value: any) {
     } else {
         return false;
     }
+}
+
+export function getEnvVariableUnsafe(value: string | undefined): string {
+    if (isUON(value)) {
+        throw new Error(`Missing environment variable`);
+    }
+
+    return value!;
+}
+
+export async function reportProblemToIFTTTSafe(applicationName: string, errorMessageShort: string): Promise<void> {
+    const errorMessageShortSafe = errorMessageShort.length > 100 ? errorMessageShort.slice(0, 100) + "..." : errorMessageShort;
+    const payload = {
+        application: applicationName,
+        message: errorMessageShortSafe
+    };
+
+    try {
+        await axios.post('https://maker.ifttt.com/trigger/PROBLEM/json/with/key/iLSK0oYSB0op5hDVyRXG7HLNOMCPzlVJjQJ2nrd3k97', payload)
+    } catch (err) {
+        console.error(`❌ Failed to report problem to IFTTT: ${applicationName}`);
+        console.error(toJson(err));
+        return;
+    }
+
+    console.error(`Problem reported to IFTTT: ${applicationName} - ${errorMessageShortSafe}`);
+    return;
 }
