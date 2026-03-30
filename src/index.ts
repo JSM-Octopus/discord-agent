@@ -5,10 +5,12 @@ import nodemailer from 'nodemailer';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
 import { RabbitMotokoActor } from "./npm-package-rabbit-motoko/rabbit-motoko-actor.js";
-import { toJson } from "./npm-package-utils/utils.js";
+import { getEnvVariableUnsafe, toJson } from "./npm-package-utils/utils.js";
 
 async function bootstrap() {
-    const rabbitMotokoActor = new RabbitMotokoActor();
+    const rabbitMotokoCanisterId: string = getEnvVariableUnsafe(process.env.RABBIT_MOTOKO_CANISTER_ID);
+
+    const rabbitMotokoActor = new RabbitMotokoActor(rabbitMotokoCanisterId);
 
     const {
         DISCORD_TOKEN,
