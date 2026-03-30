@@ -12,6 +12,11 @@ async function bootstrap() {
 
     const rabbitMotokoActor = new RabbitMotokoActor(rabbitMotokoCanisterId);
 
+    rabbitMotokoActor.addTask({
+        channel: "1",
+        payload: "Octopus Discord Agent is starting..."
+    });
+
     const {
         DISCORD_TOKEN,
         OPENAI_API,
