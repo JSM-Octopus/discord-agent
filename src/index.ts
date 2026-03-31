@@ -14,7 +14,8 @@ async function bootstrap() {
 
     rabbitMotokoActor.addTask({
         channel: "1",
-        payload: "Octopus Discord Agent is starting..."
+        payload: "Octopus Discord Agent is starting...",
+        parentIds: []
     });
 
     const {
@@ -86,7 +87,8 @@ async function bootstrap() {
 
     rabbitMotokoActor.addTask({
         channel: "1",
-        payload: welcomeText
+        payload: welcomeText,
+        parentIds: []
     }).catch((err) => {
         console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Welcome]:");
         console.log(toJson(err));
@@ -129,7 +131,8 @@ async function bootstrap() {
 
                             rabbitMotokoActor.addTask({
                                 channel: "1",
-                                payload: body
+                                payload: body,
+                                parentIds: []
                             }).catch((err) => {
                                 console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Open]:");
                                 console.log(toJson(err));
@@ -172,7 +175,8 @@ async function bootstrap() {
                                 const body = `⚡ *UPDATE* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}`;
                                 rabbitMotokoActor.addTask({
                                     channel: "1",
-                                    payload: body
+                                    payload: body,
+                                    parentIds: []
                                 }).catch((err) => {
                                     console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Update]:");
                                     console.log(toJson(err));
@@ -192,7 +196,8 @@ async function bootstrap() {
                     const body = `⚠️ *POTENCJALNY KLIENT*\nUżytkownik: ${message.author.tag}\nWiadomość: ${message.cleanContent}\nPowód: ${complain.reasoning}`;
                     rabbitMotokoActor.addTask({
                         channel: "1",
-                        payload: body
+                        payload: body,
+                        parentIds: []
                     }).catch((err) => {
                         console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Ktos narzeka]:");
                         console.log(toJson(err));
