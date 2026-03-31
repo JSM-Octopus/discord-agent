@@ -13,6 +13,7 @@
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "dependencies": {
+        "rabbit-motoko-package": "0.1.0",
         "@dfinity/agent": "^3.4.3",
         "axios": "^1.13.2",
         "crypto": "^1.0.1",
