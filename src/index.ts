@@ -14,7 +14,7 @@ async function bootstrap() {
 
     rabbitMotokoActor.addTask({
         channel: "1",
-        payload: "Octopus Discord Agent is starting...",
+        payload: "Octopus Discord Agent just started!",
         parentIds: []
     });
 
