@@ -22,7 +22,6 @@ async function bootstrap() {
         DISCORD_TOKEN,
         OPENAI_API,
         OCTOPUS_URL,
-        MY_WHATSAPP_NUMBER,
         BREVO
     } = process.env;
 
