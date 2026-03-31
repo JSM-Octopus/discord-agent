@@ -5,7 +5,7 @@ import nodemailer from 'nodemailer';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
 import { getEnvVariableUnsafe, toJson } from "./npm-package-utils/utils.js";
-import { RabbitMotokoActor } from "rabbit-motoko-package";
+import { RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
 
 async function bootstrap() {
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe(process.env.RABBIT_MOTOKO_CANISTER_ID);
