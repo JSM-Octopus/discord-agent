@@ -13,8 +13,8 @@
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "dependencies": {
-        "@jsm-mit/rabbit-motoko-package": "0.1.1",
-        "@dfinity/agent": "^3.4.3",
+        "@icp-sdk/core": "^5.2.0",
+        "@jsm-mit/rabbit-motoko-package": "0.1.8",
         "axios": "^1.13.2",
         "crypto": "^1.0.1",
         "debug": "^4.4.3",
