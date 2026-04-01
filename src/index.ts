@@ -4,13 +4,15 @@ import 'dotenv/config';
 import nodemailer from 'nodemailer';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
-import { getEnvVariableUnsafe, toJson } from "./npm-package-utils/utils.js";
 import { RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
+import { getEnvVariableUnsafe, getIdentityFromPem, toJson } from "@jsm-mit/utils-package";
 
 async function bootstrap() {
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe(process.env.RABBIT_MOTOKO_CANISTER_ID);
+    const identityPem: string = getEnvVariableUnsafe(process.env.IDENTITY_PEM);
+    const identity = getIdentityFromPem(identityPem);
 
-    const rabbitMotokoActor = new RabbitMotokoActor(rabbitMotokoCanisterId);
+    const rabbitMotokoActor = new RabbitMotokoActor(rabbitMotokoCanisterId, identity);
 
     rabbitMotokoActor.addTask({
         channel: "1",
