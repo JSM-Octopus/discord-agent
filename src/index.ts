@@ -13,7 +13,7 @@ async function bootstrap() {
     const identityPem: string = getEnvVariableUnsafe(process.env.IDENTITY_PEM);
     const identity = getIdentityFromPem(identityPem);
 
-    const pigeon = new Pigeon("DISCORD_AGENT", "michal.s.limeacademy@gmail.com", brevoPassword);
+    const pigeon = new Pigeon("Discord Agent", "michal.s.limeacademy@gmail.com", brevoPassword);
 
     pigeon.reportInfoAsyncSafe("Pigeon ready for Discord Agent!", "");
 
