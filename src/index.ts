@@ -1,16 +1,21 @@
 import { OpenAI } from "openai";
 import { Client as DiscordClient } from 'discord.js-selfbot-v13';
 import 'dotenv/config';
-import nodemailer from 'nodemailer';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
 import { RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
 import { getEnvVariableUnsafe, getIdentityFromPem, toJson } from "@jsm-mit/utils-package";
+import { Pigeon } from "@jsm-mit/pigeon-package";
 
 async function bootstrap() {
+    const brevoPassword = getEnvVariableUnsafe(process.env.BREVO);
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe(process.env.RABBIT_MOTOKO_CANISTER_ID);
     const identityPem: string = getEnvVariableUnsafe(process.env.IDENTITY_PEM);
     const identity = getIdentityFromPem(identityPem);
+
+    const pigeon = new Pigeon("DISCORD_AGENT", "michal.s.limeacademy@gmail.com", brevoPassword);
+
+    pigeon.reportInfoAsyncSafe("Pigeon ready for Discord Agent!", "");
 
     const rabbitMotokoActor = new RabbitMotokoActor(rabbitMotokoCanisterId, identity);
 
@@ -29,35 +34,6 @@ async function bootstrap() {
     if (!DISCORD_TOKEN || !OPENAI_API || !OCTOPUS_URL || !BREVO) {
         throw new Error("Brak wymaganych zmiennych w .env");
     }
-
-    const transporter = nodemailer.createTransport({
-        host: 'smtp-relay.brevo.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: 'michal.s.limeacademy@gmail.com',
-            pass: process.env.BREVO,
-        },
-    });
-
-    const sendEmail = async (transporter: any, to: string, subject: string, text: string, html?: string) => {
-        const mailOptions = {
-            from: '"DISCORD" <michal.s.limeacademy@gmail.com>',
-            to,
-            subject,
-            text,
-            html,
-        };
-
-        try {
-            const info = await transporter.sendMail(mailOptions);
-            console.log('✅ Email wysłany: %s', info.messageId);
-            return info;
-        } catch (error) {
-            console.error('❌ Błąd wysyłki maila:', error);
-            throw error;
-        }
-    };
 
     const openai = new OpenAI({ apiKey: OPENAI_API });
     const discordClient = new DiscordClient({ checkUpdate: false } as any);
