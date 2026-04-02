@@ -54,16 +54,23 @@ async function bootstrap() {
         KRYPTO: '1033122726967263353'
     };
 
+    const handleError = (title: string, err: any) => {
+        console.error(title);
+        console.log(toJson(err));
+
+        pigeon.reportUrgentAsyncSafe(`${title}`, toJson(err));
+    }
+
     const welcomeText = 'Octopus Discord Agent restarted!';
 
-    rabbitMotokoActor.addTask({
+    const args = {
         channel: "1",
         payload: welcomeText,
-        parentIds: []
-    }).catch((err) => {
-        console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Welcome]:");
-        console.log(toJson(err));
-        sendEmail(transporter, 'michal.s.limeacademy@gmail.com', welcomeText, '', undefined);
+        parentIds: [] as any
+    };
+
+    rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
+        handleError('Couldnt add task for Common Notifier, channel 1', err);
     });
 
     discordClient.on('ready', () => console.log(`✅ Discord zalogowany: ${discordClient.user?.tag}`));
@@ -99,19 +106,26 @@ async function bootstrap() {
 
                             // Powiadomienie WA wysyłane w tle
                             const body = `🚀 *OPEN* | ${result.coin}\nID: ${data.commonId}\nMachine: ${data.xMachineId}`;
-
-                            rabbitMotokoActor.addTask({
+                            const args = {
                                 channel: "1",
                                 payload: body,
-                                parentIds: []
-                            }).catch((err) => {
-                                console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Open]:");
-                                console.log(toJson(err));
-                                sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Open] WhatsApp fail!', body);
+                                parentIds: [] as any
+                            };
+
+                            rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
+                                handleError('Couldnt add task for Common Notifier, channel 1', err);
                             });
                         } else {
-                            // Tutaj masz dostęp do powodu błędu: res.reason
-                            console.error(`❌ Maszyna ${xMachineIds[index]} zawiodła:`, res.reason?.message || res.reason);
+                            const body = `❌ *OPEN FAILED* | ${result.coin}\nMachine: ${xMachineIds[index]}\nReason: ${res.reason?.message || res.reason}`;
+                            const args = {
+                                channel: "1",
+                                payload: body,
+                                parentIds: [] as any
+                            };
+
+                            rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
+                                handleError('Couldnt add task for Common Notifier, channel 1', err);
+                            });
                         }
                     });
 
@@ -144,17 +158,26 @@ async function bootstrap() {
                             const placement = position.placements[index];
                             if (res.status === 'fulfilled') {
                                 const body = `⚡ *UPDATE* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}`;
-                                rabbitMotokoActor.addTask({
+                                const args = {
                                     channel: "1",
                                     payload: body,
-                                    parentIds: []
-                                }).catch((err) => {
-                                    console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Update]:");
-                                    console.log(toJson(err));
-                                    sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Update] WhatsApp fail!', body);
+                                    parentIds: [] as any
+                                };
+
+                                rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
+                                    handleError('Couldnt add task for Common Notifier, channel 1', err);
                                 });
                             } else {
-                                console.error(`❌ Błąd update dla ${placement?.xMachineId}:`, res.reason);
+                                const body = `❌ *UPDATE FAILED* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}\nReason: ${res.reason?.message || res.reason}`;
+                                const args = {
+                                    channel: "1",
+                                    payload: body,
+                                    parentIds: [] as any
+                                };
+
+                                rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
+                                    handleError('Couldnt add task for Common Notifier, channel 1', err);
+                                });
                             }
                         });
                     }
@@ -165,19 +188,28 @@ async function bootstrap() {
                 console.log(message.cleanContent);
                 if (complain.action === 'CALL') {
                     const body = `⚠️ *POTENCJALNY KLIENT*\nUżytkownik: ${message.author.tag}\nWiadomość: ${message.cleanContent}\nPowód: ${complain.reasoning}`;
-                    rabbitMotokoActor.addTask({
+                    const args = {
                         channel: "1",
                         payload: body,
-                        parentIds: []
-                    }).catch((err) => {
-                        console.error("❌ Błąd dodawania zadania do RabbitMotokoActor [Ktos narzeka]:");
-                        console.log(toJson(err));
-                        sendEmail(transporter, 'michal.s.limeacademy@gmail.com', '[Ktos narzeka] WhatsApp fail!', body);
+                        parentIds: [] as any
+                    };
+
+                    rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
+                        handleError('Couldnt add task for Common Notifier, channel 1', err);
                     });
                 }
             }
         } catch (err: any) {
-            console.error("❌ Błąd procesowania wiadomości:", err.message);
+            const body = `❌ *ERROR PROCESSING MESSAGE*\nMessage ID: ${message.id}\nChannel: ${message.channel.id}\nReason: ${err.message || err}`;
+            const args = {
+                channel: "1",
+                payload: body,
+                parentIds: [] as any
+            };
+
+            rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
+                handleError('Couldnt add task for Common Notifier, channel 1', err);
+            });
         }
     });
 
