@@ -20,7 +20,6 @@
         "crypto": "^1.0.1",
         "debug": "^4.4.3",
         "discord.js-selfbot-v13": "^3.7.1",
-        "dotenv": "^17.2.3",
         "openai": "^6.15.0",
         "typescript": "^5.9.3"
     },
