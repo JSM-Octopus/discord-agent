@@ -15,21 +15,14 @@ async function bootstrap() {
 
     const rabbitMotokoActor = new RabbitMotokoActor(rabbitMotokoCanisterId, identity);
 
-    const {
-        DISCORD_TOKEN,
-        OPENAI_API,
-        OCTOPUS_URL,
-        BREVO
-    } = process.env;
+    const DISCORD_TOKEN = getEnvVariableUnsafe('DISCORD_TOKEN');
+    const OPENAI_API = getEnvVariableUnsafe('OPENAI_API');
+    const OCTOPUS_URL = getEnvVariableUnsafe('OCTOPUS_URL');
 
     const xMachineIds: string[] = [];
 
     // xMachineIds.push('YJZCPI'); // inspiredByDzik
     xMachineIds.push('XDRLQO'); // inspiredBySliwa (to tylko nazwa maszyny, tak naprawde oba sa na dziku w tym kodzie)
-
-    if (!DISCORD_TOKEN || !OPENAI_API || !OCTOPUS_URL || !BREVO) {
-        throw new Error("Brak wymaganych zmiennych w .env");
-    }
 
     const openai = new OpenAI({ apiKey: OPENAI_API });
     const discordClient = new DiscordClient({ checkUpdate: false } as any);
