@@ -4,16 +4,13 @@ import 'dotenv/config';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
 import { RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
-import { getEnvVariableUnsafe, getIdentityFromPem, toJson } from "@jsm-mit/utils-package";
-import { Pigeon } from "@jsm-mit/pigeon-package";
+import { BetterJSON, getEnvVariableUnsafe, getIdentityFromPem } from "@jsm-mit/utils-package";
+import { pigeon } from "@jsm-mit/pigeon-package";
 
 async function bootstrap() {
-    const brevoPassword = getEnvVariableUnsafe(process.env.BREVO);
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe(process.env.RABBIT_MOTOKO_CANISTER_ID);
     const identityPem: string = getEnvVariableUnsafe(process.env.IDENTITY_PEM);
     const identity = getIdentityFromPem(identityPem);
-
-    const pigeon = new Pigeon("Discord Agent", "michal.s.limeacademy@gmail.com", brevoPassword);
 
     pigeon.reportInfoAsyncSafe("Pigeon ready for Discord Agent!", "");
 
@@ -56,15 +53,16 @@ async function bootstrap() {
 
     const handleError = (title: string, err: any) => {
         console.error(title);
-        console.log(toJson(err));
+        console.log(BetterJSON.stringify(err));
 
-        pigeon.reportUrgentAsyncSafe(`${title}`, toJson(err));
+        pigeon.reportUrgentAsyncSafe(`${title}`, BetterJSON.stringify(err));
     }
 
     const welcomeText = 'Octopus Discord Agent restarted!';
 
     const args = {
-        channel: "1",
+        commonId: "",
+        channel: "notifier",
         payload: welcomeText,
         parentIds: [] as any
     };
@@ -107,7 +105,8 @@ async function bootstrap() {
                             // Powiadomienie WA wysyłane w tle
                             const body = `🚀 *OPEN* | ${result.coin}\nID: ${data.commonId}\nMachine: ${data.xMachineId}`;
                             const args = {
-                                channel: "1",
+                                commonId: "",
+                                channel: "notifier",
                                 payload: body,
                                 parentIds: [] as any
                             };
@@ -118,7 +117,8 @@ async function bootstrap() {
                         } else {
                             const body = `❌ *OPEN FAILED* | ${result.coin}\nMachine: ${xMachineIds[index]}\nReason: ${res.reason?.message || res.reason}`;
                             const args = {
-                                channel: "1",
+                                commonId: "",
+                                channel: "notifier",
                                 payload: body,
                                 parentIds: [] as any
                             };
@@ -159,7 +159,8 @@ async function bootstrap() {
                             if (res.status === 'fulfilled') {
                                 const body = `⚡ *UPDATE* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}`;
                                 const args = {
-                                    channel: "1",
+                                    commonId: "",
+                                    channel: "notifier",
                                     payload: body,
                                     parentIds: [] as any
                                 };
@@ -170,7 +171,8 @@ async function bootstrap() {
                             } else {
                                 const body = `❌ *UPDATE FAILED* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}\nReason: ${res.reason?.message || res.reason}`;
                                 const args = {
-                                    channel: "1",
+                                    commonId: "",
+                                    channel: "notifier",
                                     payload: body,
                                     parentIds: [] as any
                                 };
@@ -189,7 +191,8 @@ async function bootstrap() {
                 if (complain.action === 'CALL') {
                     const body = `⚠️ *POTENCJALNY KLIENT*\nUżytkownik: ${message.author.tag}\nWiadomość: ${message.cleanContent}\nPowód: ${complain.reasoning}`;
                     const args = {
-                        channel: "1",
+                        commonId: "",
+                        channel: "notifier",
                         payload: body,
                         parentIds: [] as any
                     };
@@ -202,7 +205,8 @@ async function bootstrap() {
         } catch (err: any) {
             const body = `❌ *ERROR PROCESSING MESSAGE*\nMessage ID: ${message.id}\nChannel: ${message.channel.id}\nReason: ${err.message || err}`;
             const args = {
-                channel: "1",
+                commonId: "",
+                channel: "notifier",
                 payload: body,
                 parentIds: [] as any
             };
