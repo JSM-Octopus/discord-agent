@@ -1,6 +1,5 @@
 import { OpenAI } from "openai";
 import { Client as DiscordClient } from 'discord.js-selfbot-v13';
-import 'dotenv/config';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
 import { RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
@@ -8,8 +7,8 @@ import { BetterJSON, getEnvVariableUnsafe, getIdentityFromPem } from "@jsm-mit/u
 import { pigeon } from "@jsm-mit/pigeon-package";
 
 async function bootstrap() {
-    const rabbitMotokoCanisterId: string = getEnvVariableUnsafe(process.env.RABBIT_MOTOKO_CANISTER_ID);
-    const identityPem: string = getEnvVariableUnsafe(process.env.IDENTITY_PEM);
+    const rabbitMotokoCanisterId: string = getEnvVariableUnsafe('RABBIT_MOTOKO_CANISTER_ID');
+    const identityPem: string = getEnvVariableUnsafe('IDENTITY_PEM');
     const identity = getIdentityFromPem(identityPem);
 
     pigeon.reportInfoAsyncSafe("Pigeon ready for Discord Agent!", "");
