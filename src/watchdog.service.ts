@@ -1,3 +1,4 @@
+import { pigeon } from "@jsm-mit/pigeon-package";
 import { RabbitTaskWorker, type AddTaskArgs, type RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
 import { BetterJSON, getEnvVariableUnsafe } from "@jsm-mit/utils-package";
 import axios from "axios";
@@ -10,14 +11,16 @@ export class WatchdogService {
     private startedAt = Date.now().toString();
     private discordChannelTaskWorker: RabbitTaskWorker;
 
-    constructor(private rabbitMotokoActor: RabbitMotokoActor) { 
+    constructor(private rabbitMotokoActor: RabbitMotokoActor) {
         this.discordChannelTaskWorker = new RabbitTaskWorker("discord-channel", 2500, rabbitMotokoActor);
     }
 
     run() {
         this.heartbeat();
 
-        this.discordChannelTaskWorker.tasks$.subscribe(task => {
+        this.discordChannelTaskWorker.tasks$.subscribe(async task => {
+            pigeon.debugLog(BetterJSON.stringify(task));
+            
             if (task.payload === "roundtrip test") {
                 const args: AddTaskArgs = {
                     commonId: "",
