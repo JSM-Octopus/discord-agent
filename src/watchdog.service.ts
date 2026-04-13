@@ -33,8 +33,13 @@ export class WatchdogService {
                     console.error(BetterJSON.stringify(err));
                 });
             }
+
+            await this.rabbitMotokoActor.completeTaskAsync({
+                id: task.id,
+                message: ""
+            }, false);
         });
-        
+
         this.discordChannelTaskWorker.run();
     }
 
