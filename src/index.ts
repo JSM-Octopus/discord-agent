@@ -60,7 +60,7 @@ async function bootstrap() {
     };
 
     rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
-        handleError('Couldnt add task for Common Notifier, channel 1', err);
+        handleError('Couldnt add task for Common Notifier, channel notifier', err);
     });
 
     discordClient.on('ready', () => console.log(`✅ Discord zalogowany: ${discordClient.user?.tag}`));
@@ -190,7 +190,7 @@ async function bootstrap() {
                     };
 
                     rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
-                        handleError('Couldnt add task for Common Notifier, channel 1', err);
+                        handleError('Couldnt add task for Common Notifier, channel notifier', err);
                     });
                 }
             }
@@ -204,7 +204,7 @@ async function bootstrap() {
             };
 
             rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
-                handleError('Couldnt add task for Common Notifier, channel 1', err);
+                handleError('Couldnt add task for Common Notifier, channel notifier', err);
             });
         }
     });
