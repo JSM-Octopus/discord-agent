@@ -77,6 +77,8 @@ async function bootstrap() {
 
                 const result = await parser.parseSignal(fullText);
 
+                console.log(BetterJSON.stringify(result));
+
                 if (result.action === 'OPEN') {
                     // Wysyłamy wszystkie zapytania jednocześnie
                     const results = await Promise.allSettled(
@@ -179,7 +181,7 @@ async function bootstrap() {
             }
             else if ([CHANNELS.OGOLNY, CHANNELS.KRYPTO, CHANNELS.PATRON].includes(message.channel.id)) {
                 const complain = await parser.lookForComplains(message.cleanContent);
-                console.log(message.cleanContent);
+
                 if (complain.action === 'CALL') {
                     const body = `⚠️ *POTENCJALNY KLIENT*\nUżytkownik: ${message.author.tag}\nWiadomość: ${message.cleanContent}\nPowód: ${complain.reasoning}`;
                     const args = {
