@@ -5,6 +5,7 @@ import { OctopusService } from './octopus.service.js';
 import { RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
 import { BetterJSON, getEnvVariableUnsafe, getIdentityFromPem } from "@jsm-mit/utils-package";
 import { pigeon } from "@jsm-mit/pigeon-package";
+import { WatchdogService } from "./watchdog.service.js";
 
 async function bootstrap() {
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe('RABBIT_MOTOKO_CANISTER_ID');
@@ -215,6 +216,9 @@ async function bootstrap() {
     });
 
     discordClient.login(DISCORD_TOKEN);
+
+    const watchdog = new WatchdogService(rabbitMotokoActor);
+    watchdog.run();
 }
 
 bootstrap().catch(console.error);
