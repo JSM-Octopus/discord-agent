@@ -19,7 +19,7 @@ export class WatchdogService {
         this.heartbeat();
 
         this.discordChannelTaskWorker.tasks$.subscribe(async task => {
-            pigeon.debugLog(BetterJSON.stringify(task));
+            pigeon.debugLog(BetterJSON.stringify(task), 24 * 60);
             
             if (task.payload === "roundtrip test") {
                 const args: AddTaskArgs = {
