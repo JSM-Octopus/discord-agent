@@ -1,3 +1,5 @@
+import { pigeon } from '@jsm-mit/pigeon-package';
+import { BetterJSON } from '@jsm-mit/utils-package';
 import axios from 'axios';
 
 export class OctopusService {
@@ -12,7 +14,7 @@ export class OctopusService {
     /**
      * Otwiera nową pozycję z dynamicznym ID maszyny
      */
-    public async executeNewOrder(signal: any, xMachineId: string): Promise<string> {
+    public async executeNewOrderAsync(signal: any, xMachineId: string): Promise<string> {
         try {
             const { data } = await axios.post(
                 `${this.baseUrl}/investing/orders/new`,
@@ -26,7 +28,7 @@ export class OctopusService {
             );
             return data;
         } catch (error: any) {
-            console.error('[Octopus] Error NEW:', error.response?.data || error.message);
+            pigeon.reportUrgentAsyncSafe("Couldnt open position", BetterJSON.stringify(error));
             throw error;
         }
     }

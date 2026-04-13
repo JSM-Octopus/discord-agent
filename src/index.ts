@@ -83,7 +83,7 @@ async function bootstrap() {
                     // Wysyłamy wszystkie zapytania jednocześnie
                     const results = await Promise.allSettled(
                         xMachineIds.map(async (xMachineId) => {
-                            const commonId = await octopus.executeNewOrder(result, xMachineId);
+                            const commonId = await octopus.executeNewOrderAsync(result, xMachineId);
                             return { xMachineId, commonId };
                         })
                     );
@@ -92,6 +92,7 @@ async function bootstrap() {
 
                     // Iterujemy po wynikach, aby obsłużyć sukcesy i błędy
                     results.forEach((res, index) => {
+                        console.log(BetterJSON.stringify(res));
                         if (res.status === 'fulfilled') {
                             const data = res.value;
                             successfulPlacements.push(data);
@@ -106,7 +107,7 @@ async function bootstrap() {
                             };
 
                             rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
-                                handleError('Couldnt add task for Common Notifier, channel 1', err);
+                                handleError('Couldnt add task for Common Notifier, channel notifier', err);
                             });
                         } else {
                             const body = `❌ *OPEN FAILED* | ${result.coin}\nMachine: ${xMachineIds[index]}\nReason: ${res.reason?.message || res.reason}`;
@@ -118,7 +119,7 @@ async function bootstrap() {
                             };
 
                             rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
-                                handleError('Couldnt add task for Common Notifier, channel 1', err);
+                                handleError('Couldnt add task for Common Notifier, channel notifier', err);
                             });
                         }
                     });
@@ -176,6 +177,8 @@ async function bootstrap() {
                                 });
                             }
                         });
+                    } else {
+                        console.log('Brak otwartej pozycji');
                     }
                 }
             }
