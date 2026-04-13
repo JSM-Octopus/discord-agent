@@ -18,11 +18,11 @@ export class WatchdogService {
         this.heartbeat();
 
         this.discordChannelTaskWorker.tasks$.subscribe(task => {
-            if (task.payload === "ping") {
+            if (task.payload === "roundtrip test") {
                 const args: AddTaskArgs = {
                     commonId: "",
                     channel: "notifier",
-                    payload: `pong from Discord Agent`,
+                    payload: `roundtrip test successful`,
                     parentIds: []
                 };
 
