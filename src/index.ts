@@ -184,21 +184,22 @@ async function bootstrap() {
                 }
             }
             else if ([CHANNELS.OGOLNY, CHANNELS.KRYPTO, CHANNELS.PATRON].includes(message.channel.id)) {
-                const complain = await parser.lookForComplains(message.cleanContent);
+                // disabled for now - we dont look for customers now
+                // const complain = await parser.lookForComplains(message.cleanContent);
 
-                if (complain.action === 'CALL') {
-                    const body = `⚠️ *POTENCJALNY KLIENT*\nUżytkownik: ${message.author.tag}\nWiadomość: ${message.cleanContent}\nPowód: ${complain.reasoning}`;
-                    const args = {
-                        commonId: "",
-                        channel: "notifier",
-                        payload: body,
-                        parentIds: [] as any
-                    };
+                // if (complain.action === 'CALL') {
+                //     const body = `⚠️ *POTENCJALNY KLIENT*\nUżytkownik: ${message.author.tag}\nWiadomość: ${message.cleanContent}\nPowód: ${complain.reasoning}`;
+                //     const args = {
+                //         commonId: "",
+                //         channel: "notifier",
+                //         payload: body,
+                //         parentIds: [] as any
+                //     };
 
-                    rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
-                        handleError('Couldnt add task for Common Notifier, channel notifier', err);
-                    });
-                }
+                //     rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
+                //         handleError('Couldnt add task for Common Notifier, channel notifier', err);
+                //     });
+                // }
             }
         } catch (err: any) {
             const body = `❌ *ERROR PROCESSING MESSAGE*\nMessage ID: ${message.id}\nChannel: ${message.channel.id}\nReason: ${err.message || err}`;
