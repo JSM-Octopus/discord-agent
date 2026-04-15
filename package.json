@@ -14,6 +14,7 @@
     },
     "dependencies": {
         "@jsm-mit/rabbit-motoko-package": "0.2.20",
+        "@jsm-mit/investments-motoko-package": "0.0.3",
         "@jsm-mit/utils-package": "0.2.2",
         "@jsm-mit/pigeon-package": "0.7.0",
         "axios": "^1.13.2",

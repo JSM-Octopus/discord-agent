@@ -6,15 +6,19 @@ import { RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
 import { BetterJSON, getEnvVariableUnsafe, getIdentityFromPem } from "@jsm-mit/utils-package";
 import { pigeon } from "@jsm-mit/pigeon-package";
 import { WatchdogService } from "./watchdog.service.js";
+import { InvestmentsMotokoActor } from "@jsm-mit/investments-motoko-package";
 
 async function bootstrap() {
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe('RABBIT_MOTOKO_CANISTER_ID');
+    const investmentsMotokoCanisterId: string = getEnvVariableUnsafe('INVESTMENTS_MOTOKO_CANISTER_ID');
     const identityPem: string = getEnvVariableUnsafe('IDENTITY_PEM');
     const identity = getIdentityFromPem(identityPem);
 
     pigeon.reportInfoAsyncSafe("Pigeon ready for Discord Agent!", "");
 
     const rabbitMotokoActor = new RabbitMotokoActor(rabbitMotokoCanisterId, identity);
+
+    const investmentsMotokoActor = new InvestmentsMotokoActor(investmentsMotokoCanisterId, identity);
 
     const DISCORD_TOKEN = getEnvVariableUnsafe('DISCORD_TOKEN');
     const OPENAI_API = getEnvVariableUnsafe('OPENAI_API');
@@ -31,7 +35,7 @@ async function bootstrap() {
     const parser = new ParserService(openai);
     const octopus = new OctopusService(OCTOPUS_URL);
 
-    // Zmieniona struktura Mapy: ID wiadomości -> { moneta, tablica par {maszyna, commonId} }
+    // Zmieniona struktura Mapy: CommonId wiadomości -> { moneta, tablica par {maszyna, commonId} }
     const activePositions = new Map<string, {
         coin: string;
         placements: { xMachineId: string; commonId: string }[]
@@ -98,10 +102,14 @@ async function bootstrap() {
                             const data = res.value;
                             successfulPlacements.push(data);
 
+                            investmentsMotokoActor.addMessageAsync(data.commonId, fullText, false);
+
+                            investmentsMotokoActor.addMessageAsync(data.commonId, result, false);
+
                             // Powiadomienie WA wysyłane w tle
-                            const body = `🚀 *OPEN* | ${result.coin}\nID: ${data.commonId}\nMachine: ${data.xMachineId}`;
+                            const body = `🚀 *OPEN* | ${result.side} | ${result.coin}\nCommonId: ${data.commonId}\nMachine: ${data.xMachineId}\n`;
                             const args = {
-                                commonId: "",
+                                commonId: data.commonId,
                                 channel: "notifier",
                                 payload: body,
                                 parentIds: [] as any
@@ -111,7 +119,7 @@ async function bootstrap() {
                                 handleError('Couldnt add task for Common Notifier, channel notifier', err);
                             });
                         } else {
-                            const body = `❌ *OPEN FAILED* | ${result.coin}\nMachine: ${xMachineIds[index]}\nReason: ${res.reason?.message || res.reason}`;
+                            const body = `❌ *OPEN FAILED* | ${result.side} | ${result.coin}\nMachine: ${xMachineIds[index]}\nReason: ${res.reason?.message || res.reason}`;
                             const args = {
                                 commonId: "",
                                 channel: "notifier",
@@ -152,10 +160,17 @@ async function bootstrap() {
 
                         updateResults.forEach((res, index) => {
                             const placement = position.placements[index];
+
+                            const commonId = placement?.commonId ?? 'NO-COMMON-ID';
+
+                            investmentsMotokoActor.addMessageAsync(commonId, fullText, false);
+
+                            investmentsMotokoActor.addMessageAsync(commonId, result, false);
+                            
                             if (res.status === 'fulfilled') {
-                                const body = `⚡ *UPDATE* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}`;
+                                const body = `⚡ *UPDATE* | ${result.action} | ${position.coin}\nCommonId: ${placement?.commonId}\nMachine: ${placement?.xMachineId}\n`;
                                 const args = {
-                                    commonId: "",
+                                    commonId: placement?.commonId ?? "",
                                     channel: "notifier",
                                     payload: body,
                                     parentIds: [] as any
@@ -165,9 +180,9 @@ async function bootstrap() {
                                     handleError('Couldnt add task for Common Notifier, channel 1', err);
                                 });
                             } else {
-                                const body = `❌ *UPDATE FAILED* | ${result.action} | ${position.coin}\nMachine: ${placement?.xMachineId}\nReason: ${res.reason?.message || res.reason}`;
+                                const body = `❌ *UPDATE FAILED* | ${result.action} | ${position.coin}\nCommonId: ${placement?.commonId}\nMachine: ${placement?.xMachineId}\nReason: ${res.reason?.message || res.reason}`;
                                 const args = {
-                                    commonId: "",
+                                    commonId: placement?.commonId ?? "",
                                     channel: "notifier",
                                     payload: body,
                                     parentIds: [] as any
@@ -202,7 +217,7 @@ async function bootstrap() {
                 // }
             }
         } catch (err: any) {
-            const body = `❌ *ERROR PROCESSING MESSAGE*\nMessage ID: ${message.id}\nChannel: ${message.channel.id}\nReason: ${err.message || err}`;
+            const body = `❌ *ERROR PROCESSING MESSAGE*\nMessage CommonId: ${message.id}\nChannel: ${message.channel.id}\nReason: ${err.message || err}`;
             const args = {
                 commonId: "",
                 channel: "notifier",
