@@ -94,7 +94,7 @@ async function bootstrap() {
                 const args2 = {
                     commonId: "",
                     channel: "notifier",
-                    payload: `Wynik analizy:\n\n${result}`,
+                    payload: `Wynik analizy:\n\n${BetterJSON.stringify(result)}`,
                     parentIds: [] as any
                 };
 
