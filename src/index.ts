@@ -82,7 +82,14 @@ async function bootstrap() {
 
                 const result = await parser.parseSignal(fullText);
 
-                console.log(BetterJSON.stringify(result));
+                const args = {
+                    commonId: "",
+                    channel: "notifier",
+                    payload: result,
+                    parentIds: [] as any
+                };
+
+                rabbitMotokoActor.addTaskAsync(args, false);
 
                 if (result.action === 'OPEN') {
                     // Wysyłamy wszystkie zapytania jednocześnie
@@ -107,7 +114,7 @@ async function bootstrap() {
                             investmentsMotokoActor.addMessageAsync(data.commonId, result, false);
 
                             // Powiadomienie WA wysyłane w tle
-                            const body = `🚀 *OPEN* | ${result.side} | ${result.coin}\nCommonId: ${data.commonId}\nMachine: ${data.xMachineId}\n`;
+                            const body = `🚀 *OPENING* | ${result.side} | ${result.coin}\nCommonId: ${data.commonId}\nMachine: ${data.xMachineId}\n`;
                             const args = {
                                 commonId: data.commonId,
                                 channel: "notifier",
@@ -166,9 +173,9 @@ async function bootstrap() {
                             investmentsMotokoActor.addMessageAsync(commonId, fullText, false);
 
                             investmentsMotokoActor.addMessageAsync(commonId, result, false);
-                            
+
                             if (res.status === 'fulfilled') {
-                                const body = `⚡ *UPDATE* | ${result.action} | ${position.coin}\nCommonId: ${placement?.commonId}\nMachine: ${placement?.xMachineId}\n`;
+                                const body = `⚡ *UPDATEING* | ${result.action} | ${position.coin}\nCommonId: ${placement?.commonId}\nMachine: ${placement?.xMachineId}\n`;
                                 const args = {
                                     commonId: placement?.commonId ?? "",
                                     channel: "notifier",
