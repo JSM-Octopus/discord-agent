@@ -80,16 +80,25 @@ async function bootstrap() {
                     e?.fields.forEach(f => fullText += ` | ${f.name}: ${f.value}`);
                 }
 
-                const result = await parser.parseSignal(fullText);
-
                 const args = {
                     commonId: "",
                     channel: "notifier",
-                    payload: result,
+                    payload: `Wiadomość z discord do analizy:\n\n${fullText}`,
                     parentIds: [] as any
                 };
 
                 rabbitMotokoActor.addTaskAsync(args, false);
+
+                const result = await parser.parseSignal(fullText);
+
+                const args2 = {
+                    commonId: "",
+                    channel: "notifier",
+                    payload: `Wynik analizy:\n\n${result}`,
+                    parentIds: [] as any
+                };
+
+                rabbitMotokoActor.addTaskAsync(args2, false);
 
                 if (result.action === 'OPEN') {
                     // Wysyłamy wszystkie zapytania jednocześnie
