@@ -120,7 +120,7 @@ async function bootstrap() {
 
                             investmentsMotokoActor.addMessageAsync(data.commonId, fullText, false);
 
-                            investmentsMotokoActor.addMessageAsync(data.commonId, result, false);
+                            investmentsMotokoActor.addMessageAsync(data.commonId, BetterJSON.stringify(result), false);
 
                             // Powiadomienie WA wysyłane w tle
                             const body = `🚀 *OPENING* | ${result.side} | ${result.coin}\nCommonId: ${data.commonId}\nMachine: ${data.xMachineId}\n`;
@@ -181,10 +181,10 @@ async function bootstrap() {
 
                             investmentsMotokoActor.addMessageAsync(commonId, fullText, false);
 
-                            investmentsMotokoActor.addMessageAsync(commonId, result, false);
+                            investmentsMotokoActor.addMessageAsync(commonId, BetterJSON.stringify(result), false);
 
                             if (res.status === 'fulfilled') {
-                                const body = `⚡ *UPDATEING* | ${result.action} | ${position.coin}\nCommonId: ${placement?.commonId}\nMachine: ${placement?.xMachineId}\n`;
+                                const body = `⚡ *UPDATING* | ${result.action} | ${position.coin}\nCommonId: ${placement?.commonId}\nMachine: ${placement?.xMachineId}\n`;
                                 const args = {
                                     commonId: placement?.commonId ?? "",
                                     channel: "notifier",
