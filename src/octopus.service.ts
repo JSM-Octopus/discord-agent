@@ -1,6 +1,7 @@
 import { pigeon } from '@jsm-mit/pigeon-package';
 import { BetterJSON } from '@jsm-mit/utils-package';
 import axios from 'axios';
+import { componentName } from './globals.js';
 
 export class OctopusService {
     private readonly headers = {
@@ -28,7 +29,7 @@ export class OctopusService {
             );
             return data;
         } catch (error: any) {
-            pigeon.reportUrgentAsyncSafe("Couldnt open position", BetterJSON.stringify(error));
+            pigeon.reportUrgentAsyncSafe(componentName, "LYCDM", "Couldnt open position", BetterJSON.stringify(error));
             throw error;
         }
     }

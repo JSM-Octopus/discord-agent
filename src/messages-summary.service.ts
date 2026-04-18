@@ -16,7 +16,7 @@ export class MessageSummaryService {
      * Processes incoming messages from the selfbot listener.
      */
     public handleIncomingMessage(message: any): void {
-        console.log(BetterJSON.stringify(message);)
+        console.log(BetterJSON.stringify(message));
         // Selfbots often trigger on their own messages; we skip them if needed 
         // or include them depending on your preference.
         if (!message.content) return;

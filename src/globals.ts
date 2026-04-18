@@ -1,3 +1,5 @@
+export const componentName = "discord-agent";
+
 export const CHANNELS = {
     DZIK: '1120791815315001477',
     OGOLNY: '1033122700731887758',

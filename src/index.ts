@@ -8,15 +8,13 @@ import { pigeon } from "@jsm-mit/pigeon-package";
 import { WatchdogService } from "./watchdog.service.js";
 import { InvestmentsMotokoActor } from "@jsm-mit/investments-motoko-package";
 import { MessageSummaryService } from "./messages-summary.service.js";
-import { CHANNELS } from "./globals.js";
+import { CHANNELS, componentName } from "./globals.js";
 
 async function bootstrap() {
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe('RABBIT_MOTOKO_CANISTER_ID');
     const investmentsMotokoCanisterId: string = getEnvVariableUnsafe('INVESTMENTS_MOTOKO_CANISTER_ID');
     const identityPem: string = getEnvVariableUnsafe('IDENTITY_PEM');
     const identity = getIdentityFromPem(identityPem);
-
-    pigeon.reportInfoAsyncSafe("Pigeon ready for Discord Agent!", "");
 
     const rabbitMotokoActor = new RabbitMotokoActor(rabbitMotokoCanisterId, identity);
 
@@ -49,7 +47,7 @@ async function bootstrap() {
         console.error(title);
         console.log(BetterJSON.stringify(err));
 
-        pigeon.reportUrgentAsyncSafe(`${title}`, BetterJSON.stringify(err));
+        pigeon.reportUrgentAsyncSafe(componentName, "EJYEO", `${title}`, BetterJSON.stringify(err));
     }
 
     const welcomeText = 'Octopus Discord Agent restarted!';
