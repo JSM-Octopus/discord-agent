@@ -44,11 +44,33 @@ export class WatchdogService {
                 const args: AddTaskArgs = {
                     commonId: "",
                     channel: "notifier",
-                    payload: `${summaryOgolny} | ${summaryPatron} | ${summaryKrypto}`,
+                    payload: `Ogólny: ${summaryOgolny}`,
                     parentIds: []
                 };
 
-                this.rabbitMotokoActor.addTaskAsync(args, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsync(args, false).catch((err) => {
+                    console.error(BetterJSON.stringify(err));
+                });
+
+                const args2: AddTaskArgs = {
+                    commonId: "",
+                    channel: "notifier",
+                    payload: `Patron: ${summaryPatron}`,
+                    parentIds: []
+                };
+
+                await this.rabbitMotokoActor.addTaskAsync(args2, false).catch((err) => {
+                    console.error(BetterJSON.stringify(err));
+                });
+
+                const args3: AddTaskArgs = {
+                    commonId: "",
+                    channel: "notifier",
+                    payload: `Krypto: ${summaryKrypto}`,
+                    parentIds: []
+                };
+
+                await this.rabbitMotokoActor.addTaskAsync(args3, false).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
             }

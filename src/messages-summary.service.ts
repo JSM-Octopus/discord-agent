@@ -64,7 +64,7 @@ export class MessageSummaryService {
                 messages: [
                     {
                         role: "system",
-                        content: "Summarize the following Discord chat logs from the last 24 hours. Be concise and highlight key points."
+                        content: "Summarize the following Discord chat logs from the last 24 hours. Be concise and highlight key points. Answer in Polish"
                     },
                     {
                         role: "user",
