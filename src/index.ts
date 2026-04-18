@@ -7,6 +7,8 @@ import { BetterJSON, getEnvVariableUnsafe, getIdentityFromPem } from "@jsm-mit/u
 import { pigeon } from "@jsm-mit/pigeon-package";
 import { WatchdogService } from "./watchdog.service.js";
 import { InvestmentsMotokoActor } from "@jsm-mit/investments-motoko-package";
+import { MessageSummaryService } from "./messages-summary.service.js";
+import { CHANNELS } from "./globals.js";
 
 async function bootstrap() {
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe('RABBIT_MOTOKO_CANISTER_ID');
@@ -41,12 +43,7 @@ async function bootstrap() {
         placements: { xMachineId: string; commonId: string }[]
     }>();
 
-    const CHANNELS = {
-        DZIK: '1120791815315001477',
-        OGOLNY: '1033122700731887758',
-        PATRON: '1459523380452655214',
-        KRYPTO: '1033122726967263353'
-    };
+    
 
     const handleError = (title: string, err: any) => {
         console.error(title);
@@ -68,6 +65,8 @@ async function bootstrap() {
         handleError('Couldnt add task for Common Notifier, channel notifier', err);
     });
 
+    const messagesSummaryService = new MessageSummaryService(openai);
+
     discordClient.on('ready', () => console.log(`✅ Discord zalogowany: ${discordClient.user?.tag}`));
 
     discordClient.on('messageCreate', async (message) => {
@@ -79,6 +78,9 @@ async function bootstrap() {
                     fullText += ` | Title: ${e?.title} | Desc: ${e?.description || ''}`;
                     e?.fields.forEach(f => fullText += ` | ${f.name}: ${f.value}`);
                 }
+
+
+                messagesSummaryService.handleIncomingMessage(message);
 
                 const args = {
                     commonId: "",
@@ -215,6 +217,7 @@ async function bootstrap() {
                 }
             }
             else if ([CHANNELS.OGOLNY, CHANNELS.KRYPTO, CHANNELS.PATRON].includes(message.channel.id)) {
+                messagesSummaryService.handleIncomingMessage(message);
                 // disabled for now - we dont look for customers now
                 // const complain = await parser.lookForComplains(message.cleanContent);
 
@@ -249,7 +252,7 @@ async function bootstrap() {
 
     discordClient.login(DISCORD_TOKEN);
 
-    const watchdog = new WatchdogService(rabbitMotokoActor);
+    const watchdog = new WatchdogService(rabbitMotokoActor, messagesSummaryService);
     watchdog.run();
 }
 

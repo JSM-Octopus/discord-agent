@@ -2,6 +2,8 @@ import { pigeon } from "@jsm-mit/pigeon-package";
 import { RabbitTaskWorker, type AddTaskArgs, type RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
 import { BetterJSON, getEnvVariableUnsafe } from "@jsm-mit/utils-package";
 import axios from "axios";
+import type { MessageSummaryService } from "./messages-summary.service.js";
+import { CHANNELS } from "./globals.js";
 
 const heartbeatUrl = getEnvVariableUnsafe('HEARTBEAT_URL');
 const heartbeatPassword = getEnvVariableUnsafe('HEARTBEAT_PASSWORD');
@@ -11,7 +13,7 @@ export class WatchdogService {
     private startedAt = Date.now().toString();
     private discordChannelTaskWorker: RabbitTaskWorker;
 
-    constructor(private rabbitMotokoActor: RabbitMotokoActor) {
+    constructor(private rabbitMotokoActor: RabbitMotokoActor, private messagesSummaryService: MessageSummaryService) {
         this.discordChannelTaskWorker = new RabbitTaskWorker("discord-channel", 2500, rabbitMotokoActor);
     }
 
@@ -19,13 +21,30 @@ export class WatchdogService {
         this.heartbeat();
 
         this.discordChannelTaskWorker.tasks$.subscribe(async task => {
-            pigeon.debugLog(BetterJSON.stringify(task), 24 * 60);
-            
+            pigeon.debugLog(BetterJSON.stringify(task), 24);
+
             if (task.payload === "roundtrip test") {
                 const args: AddTaskArgs = {
                     commonId: "",
                     channel: "notifier",
                     payload: `roundtrip test successful`,
+                    parentIds: []
+                };
+
+                this.rabbitMotokoActor.addTaskAsync(args, false).catch((err) => {
+                    console.error(BetterJSON.stringify(err));
+                });
+            } else if (task.payload === "summary") {
+                const [summaryOgolny, summaryPatron, summaryKrypto] = await Promise.all([
+                    this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.OGOLNY),
+                    this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.PATRON),
+                    this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.KRYPTO)
+                ]);
+
+                const args: AddTaskArgs = {
+                    commonId: "",
+                    channel: "notifier",
+                    payload: `${summaryOgolny} | ${summaryPatron} | ${summaryKrypto}`,
                     parentIds: []
                 };
 
