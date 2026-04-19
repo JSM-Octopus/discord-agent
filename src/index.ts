@@ -77,8 +77,10 @@ async function bootstrap() {
                     e?.fields.forEach(f => fullText += ` | ${f.name}: ${f.value}`);
                 }
 
-
-                messagesSummaryService.handleIncomingMessage(message);
+                if (!fullText) {
+                    messagesSummaryService.handleIncomingMessage(message);
+                    return;
+                }
 
                 const args = {
                     commonId: "",
@@ -118,9 +120,13 @@ async function bootstrap() {
                             const data = res.value;
                             successfulPlacements.push(data);
 
-                            investmentsMotokoActor.addMessageAsync(data.commonId, fullText, false);
+                            investmentsMotokoActor.addMessageAsyncUnsafe(data.commonId, fullText, true).catch(err => {
+                                handleError("Cannot add message", err);
+                            });
 
-                            investmentsMotokoActor.addMessageAsync(data.commonId, BetterJSON.stringify(result), false);
+                            investmentsMotokoActor.addMessageAsyncUnsafe(data.commonId, BetterJSON.stringify(result), true).catch(err => {
+                                handleError("Cannot add message", err);
+                            });
 
                             // Powiadomienie WA wysyłane w tle
                             const body = `🚀 *OPENING* | ${result.side} | ${result.coin}\nCommonId: ${data.commonId}\nMachine: ${data.xMachineId}\n`;
@@ -179,9 +185,13 @@ async function bootstrap() {
 
                             const commonId = placement?.commonId ?? 'NO-COMMON-ID';
 
-                            investmentsMotokoActor.addMessageAsync(commonId, fullText, false);
+                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, fullText, true).catch(err => {
+                                handleError("Cannot add message", err);
+                            });
 
-                            investmentsMotokoActor.addMessageAsync(commonId, BetterJSON.stringify(result), false);
+                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, BetterJSON.stringify(result), true).catch(err => {
+                                handleError("Cannot add message", err);
+                            });
 
                             if (res.status === 'fulfilled') {
                                 const body = `⚡ *UPDATING* | ${result.action} | ${position.coin}\nCommonId: ${placement?.commonId}\nMachine: ${placement?.xMachineId}\n`;

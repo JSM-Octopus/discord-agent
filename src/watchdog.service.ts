@@ -38,7 +38,8 @@ export class WatchdogService {
                 const [summaryOgolny, summaryPatron, summaryKrypto] = await Promise.all([
                     this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.OGOLNY),
                     this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.PATRON),
-                    this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.KRYPTO)
+                    this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.KRYPTO),
+                    this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.DZIK)
                 ]);
 
                 const args: AddTaskArgs = {
