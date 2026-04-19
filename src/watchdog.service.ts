@@ -35,7 +35,7 @@ export class WatchdogService {
                     console.error(BetterJSON.stringify(err));
                 });
             } else if (task.payload === "summary") {
-                const [summaryOgolny, summaryPatron, summaryKrypto] = await Promise.all([
+                const [summaryOgolny, summaryPatron, summaryKrypto, summaryDzik] = await Promise.all([
                     this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.OGOLNY),
                     this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.PATRON),
                     this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.KRYPTO),
@@ -72,6 +72,17 @@ export class WatchdogService {
                 };
 
                 await this.rabbitMotokoActor.addTaskAsync(args3, false).catch((err) => {
+                    console.error(BetterJSON.stringify(err));
+                });
+
+                const args4: AddTaskArgs = {
+                    commonId: "",
+                    channel: "notifier",
+                    payload: `Dzik: ${summaryDzik}`,
+                    parentIds: []
+                };
+
+                await this.rabbitMotokoActor.addTaskAsync(args4, false).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
             }

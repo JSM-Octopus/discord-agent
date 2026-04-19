@@ -1,5 +1,6 @@
-import { BetterJSON } from '@jsm-mit/utils-package';
 import OpenAI from 'openai';
+import { getContent } from './others.js';
+import type { Message } from 'discord.js-selfbot-v13';
 
 interface ChannelMessage {
     content: string;
@@ -15,17 +16,12 @@ export class MessageSummaryService {
     /**
      * Processes incoming messages from the selfbot listener.
      */
-    public handleIncomingMessage(message: any): void {
-        console.log(BetterJSON.stringify(message));
-        // Selfbots often trigger on their own messages; we skip them if needed 
-        // or include them depending on your preference.
-        if (!message.content) return;
-
+    public handleIncomingMessage(message: Message<boolean>): void {
         const channelId = message.channelId;
         const now = Date.now();
 
         const newMessage: ChannelMessage = {
-            content: message.content,
+            content: getContent(message),
             author: message.author.username,
             timestamp: now,
         };

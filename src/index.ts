@@ -9,6 +9,7 @@ import { WatchdogService } from "./watchdog.service.js";
 import { InvestmentsMotokoActor } from "@jsm-mit/investments-motoko-package";
 import { MessageSummaryService } from "./messages-summary.service.js";
 import { CHANNELS, componentName } from "./globals.js";
+import { getContentFromEmbeds } from "./others.js";
 
 async function bootstrap() {
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe('RABBIT_MOTOKO_CANISTER_ID');
@@ -70,12 +71,7 @@ async function bootstrap() {
     discordClient.on('messageCreate', async (message) => {
         try {
             if (message.channel.id === CHANNELS.DZIK) {
-                let fullText = '';
-                if (message.embeds.length > 0) {
-                    const e = message.embeds[0];
-                    fullText += ` | Title: ${e?.title} | Desc: ${e?.description || ''}`;
-                    e?.fields.forEach(f => fullText += ` | ${f.name}: ${f.value}`);
-                }
+                let fullText = getContentFromEmbeds(message);
 
                 if (!fullText) {
                     messagesSummaryService.handleIncomingMessage(message);
