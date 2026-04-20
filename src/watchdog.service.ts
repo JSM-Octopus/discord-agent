@@ -31,7 +31,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                this.rabbitMotokoActor.addTaskAsync(args, false).catch((err) => {
+                this.rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
             } else if (task.payload === "summary") {
@@ -49,7 +49,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsync(args, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 
@@ -60,7 +60,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsync(args2, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args2, false).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 
@@ -71,7 +71,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsync(args3, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args3, false).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 
@@ -82,12 +82,12 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsync(args4, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args4, false).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
             }
 
-            await this.rabbitMotokoActor.completeTaskAsync({
+            await this.rabbitMotokoActor.completeTaskAsyncUnsafe({
                 id: task.id,
                 message: ""
             }, false);
@@ -112,7 +112,10 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsync(args, false);
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+                    console.error(BetterJSON.stringify(err));
+                });
+
                 console.error(BetterJSON.stringify(err));
             }
         }, 20 * 1000);
