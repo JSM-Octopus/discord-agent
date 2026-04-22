@@ -13,10 +13,10 @@
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "dependencies": {
-        "@jsm-mit/rabbit-motoko-package": "0.4.0",
-        "@jsm-mit/investments-motoko-package": "0.1.2",
+        "@jsm-mit/rabbit-motoko-package": "0.4.1",
+        "@jsm-mit/investments-motoko-package": "0.1.8",
         "@jsm-mit/utils-package": "0.3.0",
-        "@jsm-mit/pigeon-package": "0.8.2",
+        "@jsm-mit/pigeon-package": "0.9.2",
         "axios": "^1.13.2",
         "crypto": "^1.0.1",
         "debug": "^4.4.3",
