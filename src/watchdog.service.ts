@@ -45,7 +45,10 @@ export class WatchdogService {
                 const args: AddTaskArgs = {
                     commonId: "",
                     channel: "notifier",
-                    payload: `Ogólny: ${summaryOgolny}`,
+                    payload: BetterJSON.stringify({
+                        to: "common-notifier-admin",
+                        text: `Ogólny: ${summaryOgolny}`
+                    }),
                     parentIds: []
                 };
 
@@ -56,7 +59,10 @@ export class WatchdogService {
                 const args2: AddTaskArgs = {
                     commonId: "",
                     channel: "notifier",
-                    payload: `Patron: ${summaryPatron}`,
+                    payload: BetterJSON.stringify({
+                        to: "common-notifier-admin",
+                        text: `Patron: ${summaryOgolny}`
+                    }),
                     parentIds: []
                 };
 
@@ -67,7 +73,10 @@ export class WatchdogService {
                 const args3: AddTaskArgs = {
                     commonId: "",
                     channel: "notifier",
-                    payload: `Krypto: ${summaryKrypto}`,
+                    payload: BetterJSON.stringify({
+                        to: "common-notifier-admin",
+                        text: `Krypto: ${summaryOgolny}`
+                    }),
                     parentIds: []
                 };
 
@@ -78,7 +87,10 @@ export class WatchdogService {
                 const args4: AddTaskArgs = {
                     commonId: "",
                     channel: "notifier",
-                    payload: `Dzik: ${summaryDzik}`,
+                    payload: BetterJSON.stringify({
+                        to: "common-notifier-admin",
+                        text: `Dzik: ${summaryOgolny}`
+                    }),
                     parentIds: []
                 };
 
