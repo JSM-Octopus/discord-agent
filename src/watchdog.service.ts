@@ -61,7 +61,7 @@ export class WatchdogService {
                     channel: "notifier",
                     payload: BetterJSON.stringify({
                         to: "common-notifier-admin",
-                        text: `Patron: ${summaryOgolny}`
+                        text: `Patron: ${summaryPatron}`
                     }),
                     parentIds: []
                 };
@@ -75,7 +75,7 @@ export class WatchdogService {
                     channel: "notifier",
                     payload: BetterJSON.stringify({
                         to: "common-notifier-admin",
-                        text: `Krypto: ${summaryOgolny}`
+                        text: `Krypto: ${summaryKrypto}`
                     }),
                     parentIds: []
                 };
@@ -89,7 +89,7 @@ export class WatchdogService {
                     channel: "notifier",
                     payload: BetterJSON.stringify({
                         to: "common-notifier-admin",
-                        text: `Dzik: ${summaryOgolny}`
+                        text: `Dzik: ${summaryDzik}`
                     }),
                     parentIds: []
                 };
