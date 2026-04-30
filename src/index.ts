@@ -42,7 +42,7 @@ async function bootstrap() {
         placements: { xMachineId: string; commonId: string }[]
     }>();
 
-    
+    octopus.restoreActivePositions(activePositions, xMachineIds);
 
     const handleError = (title: string, err: any) => {
         console.error(title);

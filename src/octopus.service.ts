@@ -1,5 +1,5 @@
 import { pigeon } from '@jsm-mit/pigeon-package';
-import { BetterJSON } from '@jsm-mit/utils-package';
+import { BetterJSON, waitFor } from '@jsm-mit/utils-package';
 import axios from 'axios';
 import { componentName } from './globals.js';
 
@@ -10,7 +10,7 @@ export class OctopusService {
         'Content-Type': 'application/json'
     };
 
-    constructor(private readonly baseUrl: string) {}
+    constructor(private readonly baseUrl: string) { }
 
     /**
      * Otwiera nową pozycję z dynamicznym ID maszyny
@@ -20,11 +20,11 @@ export class OctopusService {
             const { data } = await axios.post(
                 `${this.baseUrl}/investing/orders/new`,
                 signal,
-                { 
-                    headers: { 
-                        ...this.headers, 
-                        'x-machine-id': xMachineId 
-                    } 
+                {
+                    headers: {
+                        ...this.headers,
+                        'x-machine-id': xMachineId
+                    }
                 }
             );
             return data;
@@ -45,12 +45,12 @@ export class OctopusService {
         value?: number
     ): Promise<void> {
         const urlBase = `${this.baseUrl}/investing/positions/${coin}`;
-        const config = { 
-            headers: { 
-                ...this.headers, 
+        const config = {
+            headers: {
+                ...this.headers,
                 'x-machine-id': xMachineId,
-                'x-common-id': commonId 
-            } 
+                'x-common-id': commonId
+            }
         };
 
         try {
@@ -74,6 +74,48 @@ export class OctopusService {
         } catch (error: any) {
             console.error(`[Octopus] Error ${action}:`, error.response?.data || error.message);
             throw error;
+        }
+    }
+
+    // TODO - to jest chyba zle
+    public async restoreActivePositions(activePositions: Map<string, {
+        coin: string;
+        placements: { xMachineId: string; commonId: string }[]
+    }>, xMachineIds: string[]): Promise<void> {
+        
+        while (true) {
+            let breakWhileLoop = true;
+
+            for (let i = 0; i < xMachineIds.length; i++) {
+                const machineId = xMachineIds[i];
+
+                const response = await axios.get<any[]>(
+                    `${this.baseUrl}/investing/positions`,
+                    {
+                        headers: {
+                            ...this.headers,
+                            'x-machine-id': machineId
+                        }
+                    }
+                );
+
+                console.log(BetterJSON.stringify(response.data));
+
+                for (let j = 0; j < response.data.length; j++) {
+                    if (!response.data[j].commonId) {
+                        pigeon.reportInfoAsyncSafe(componentName, "GBLGZ", "No commonId in response from Octopus", BetterJSON.stringify(response.data));
+                        breakWhileLoop = false;
+                    } else {
+                        activePositions.set()
+                    }
+                }
+            }
+
+            if (breakWhileLoop) {
+                break;
+            } else {
+                await waitFor(1 * 60 * 1000);
+            }
         }
     }
 }
