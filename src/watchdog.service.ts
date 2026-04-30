@@ -27,7 +27,10 @@ export class WatchdogService {
                 const args: AddTaskArgs = {
                     commonId: "",
                     channel: "notifier",
-                    payload: `roundtrip test successful`,
+                    payload: BetterJSON.stringify({
+                        to: "common-notifier-admin",
+                        text: `roundtrip test successful`
+                    }),
                     parentIds: []
                 };
 

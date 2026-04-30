@@ -56,7 +56,10 @@ async function bootstrap() {
     const args = {
         commonId: "",
         channel: "notifier",
-        payload: welcomeText,
+        payload: BetterJSON.stringify({
+            to: "common-notifier-admin",
+            text: welcomeText
+        }),
         parentIds: [] as any
     };
 
@@ -78,25 +81,7 @@ async function bootstrap() {
                     return;
                 }
 
-                const args = {
-                    commonId: "",
-                    channel: "notifier",
-                    payload: `Wiadomość z discord do analizy:\n\n${fullText}`,
-                    parentIds: [] as any
-                };
-
-                rabbitMotokoActor.addTaskAsyncUnsafe(args, false);
-
                 const result = await parser.parseSignal(fullText);
-
-                const args2 = {
-                    commonId: "",
-                    channel: "notifier",
-                    payload: `Wynik analizy:\n\n${BetterJSON.stringify(result)}`,
-                    parentIds: [] as any
-                };
-
-                rabbitMotokoActor.addTaskAsyncUnsafe(args2, false);
 
                 if (result.action === 'OPEN') {
                     // Wysyłamy wszystkie zapytania jednocześnie
@@ -129,7 +114,10 @@ async function bootstrap() {
                             const args = {
                                 commonId: data.commonId,
                                 channel: "notifier",
-                                payload: body,
+                                payload: BetterJSON.stringify({
+                                    to: "common-notifier-admin",
+                                    text: body
+                                }),
                                 parentIds: [] as any
                             };
 
@@ -141,7 +129,10 @@ async function bootstrap() {
                             const args = {
                                 commonId: "",
                                 channel: "notifier",
-                                payload: body,
+                                payload: BetterJSON.stringify({
+                                    to: "common-notifier-admin",
+                                    text: body
+                                }),
                                 parentIds: [] as any
                             };
 
@@ -194,7 +185,10 @@ async function bootstrap() {
                                 const args = {
                                     commonId: placement?.commonId ?? "",
                                     channel: "notifier",
-                                    payload: body,
+                                    payload: BetterJSON.stringify({
+                                        to: "common-notifier-admin",
+                                        text: body
+                                    }),
                                     parentIds: [] as any
                                 };
 
@@ -206,7 +200,10 @@ async function bootstrap() {
                                 const args = {
                                     commonId: placement?.commonId ?? "",
                                     channel: "notifier",
-                                    payload: body,
+                                    payload: BetterJSON.stringify({
+                                        to: "common-notifier-admin",
+                                        text: body
+                                    }),
                                     parentIds: [] as any
                                 };
 
@@ -244,7 +241,10 @@ async function bootstrap() {
             const args = {
                 commonId: "",
                 channel: "notifier",
-                payload: body,
+                payload: BetterJSON.stringify({
+                    to: "common-notifier-admin",
+                    text: body
+                }),
                 parentIds: [] as any
             };
 
