@@ -123,7 +123,10 @@ export class WatchdogService {
                 const args: AddTaskArgs = {
                     commonId: "",
                     channel: "notifier",
-                    payload: `Heartbeat error from Discord Agent`,
+                    payload: BetterJSON.stringify({
+                        to: "common-notifier-admin",
+                        text: `Heartbeat error from Discord Agent`
+                    }),
                     parentIds: []
                 };
 
