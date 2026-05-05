@@ -34,7 +34,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                this.rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+                this.rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
             } else if (task.payload === "summary") {
@@ -55,7 +55,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 
@@ -69,7 +69,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args2, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args2).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 
@@ -83,7 +83,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args3, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args3).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 
@@ -97,7 +97,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args4, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args4).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
             }
@@ -105,7 +105,7 @@ export class WatchdogService {
             await this.rabbitMotokoActor.completeTaskAsyncUnsafe({
                 id: task.id,
                 message: ""
-            }, false);
+            });
         });
 
         this.discordChannelTaskWorker.run();
@@ -127,7 +127,7 @@ export class WatchdogService {
                     parentIds: []
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 

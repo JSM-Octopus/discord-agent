@@ -63,7 +63,7 @@ async function bootstrap() {
         parentIds: [] as any
     };
 
-    rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+    rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
         handleError('Couldnt add task for Common Notifier, channel notifier', err);
     });
 
@@ -101,11 +101,11 @@ async function bootstrap() {
                             const data = res.value;
                             successfulPlacements.push(data);
 
-                            investmentsMotokoActor.addMessageAsyncUnsafe(data.commonId, fullText, true).catch(err => {
+                            investmentsMotokoActor.addMessageAsyncUnsafe(data.commonId, fullText).catch(err => {
                                 handleError("Cannot add message", err);
                             });
 
-                            investmentsMotokoActor.addMessageAsyncUnsafe(data.commonId, BetterJSON.stringify(result), true).catch(err => {
+                            investmentsMotokoActor.addMessageAsyncUnsafe(data.commonId, BetterJSON.stringify(result)).catch(err => {
                                 handleError("Cannot add message", err);
                             });
 
@@ -121,7 +121,7 @@ async function bootstrap() {
                                 parentIds: [] as any
                             };
 
-                            rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+                            rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
                                 handleError('Couldnt add task for Common Notifier, channel notifier', err);
                             });
                         } else {
@@ -136,7 +136,7 @@ async function bootstrap() {
                                 parentIds: [] as any
                             };
 
-                            rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+                            rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
                                 handleError('Couldnt add task for Common Notifier, channel notifier', err);
                             });
                         }
@@ -172,11 +172,11 @@ async function bootstrap() {
 
                             const commonId = placement?.commonId ?? 'NO-COMMON-ID';
 
-                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, fullText, true).catch(err => {
+                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, fullText).catch(err => {
                                 handleError("Cannot add message", err);
                             });
 
-                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, BetterJSON.stringify(result), true).catch(err => {
+                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, BetterJSON.stringify(result)).catch(err => {
                                 handleError("Cannot add message", err);
                             });
 
@@ -192,7 +192,7 @@ async function bootstrap() {
                                     parentIds: [] as any
                                 };
 
-                                rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+                                rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
                                     handleError('Couldnt add task for Common Notifier, channel 1', err);
                                 });
                             } else {
@@ -207,7 +207,7 @@ async function bootstrap() {
                                     parentIds: [] as any
                                 };
 
-                                rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+                                rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
                                     handleError('Couldnt add task for Common Notifier, channel 1', err);
                                 });
                             }
@@ -248,7 +248,7 @@ async function bootstrap() {
                 parentIds: [] as any
             };
 
-            rabbitMotokoActor.addTaskAsyncUnsafe(args, false).catch((err) => {
+            rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
                 handleError('Couldnt add task for Common Notifier, channel notifier', err);
             });
         }
