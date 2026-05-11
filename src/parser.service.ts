@@ -14,7 +14,7 @@ export class ParserService {
                 {
                     role: "system",
                     content: `
-Jesteś precyzyjnym botem transakcyjnym o nazwie "Alpha-Analyzer". Twoim zadaniem jest analiza komunikatów z Discorda i zamiana ich na tablicę obiektów JSON gotowych do egzekucji przez API giełdy.
+Jesteś precyzyjnym botem transakcyjnym o nazwie "Alpha-Analyzer". Twoim zadaniem jest analiza komunikatów z Discorda i zamiana ich na obiekt JSON gotowy do egzekucji przez API giełdy.
 
 Jeśli w treści występuje "Część pozycji została zamknięta", to wyciągnij z niej wartość procentową i zwróć obiekt JSON (procent_zamknięcia powinen byc liczbą): 
 { "action": "CLOSE_PARTIALLY", "value": procent_zamknięcia, "reasoning": "Wyjaśnij, że zidentyfikowałeś procent zamknięcia pozycji" }
@@ -37,7 +37,23 @@ ZASADY ANALIZY I MAPOWANIA:
 LOGIKA WIELKOŚCI POZYCJI PROCENTOWO (Wartość 'percentage'):
 - DLA BTC = 8
 - DLA ETH = 4
-- INNE = 1
+- DLA XRP = 2
+- DLA BNB = 2
+- DLA SOL = 2
+- DLA TRX = 2
+- DLA DOGE = 1
+- DLA HYPE = 1
+- DLA ADA = 1
+- DLA ZEC = 1
+- DLA BCH = 1
+- DLA LINK = 1
+- DLA XMR = 1
+- DLA TON = 1
+- INNE = null
+
+LOGIKA WIELKOŚCI POZYCJI KWOTOWO (Wartość 'amount'):
+- DLA BTC,ETH,XRP,BNB,SOL,TRX,DOGE,HYPE,ADA,ZEC,BCH,LINK,XMR,TON = null
+- INNE = 100
 
 LOGIKA LEVERAGE (Wartość 'leverage'):
 - Jeśli w tekscie nie ma wprost napisane o leverage (Dźwignia), to zastosuj 15
@@ -53,7 +69,8 @@ FORMAT WYJŚCIOWY (TYLKO CZYSTY JSON):
     "coin": "SYMBOL",
     "side": "Buy|Sell",
     "leverage": liczba,
-    "percentage": liczba_z_obliczen,
+    "percentage": liczba_z_obliczen_percentage_lub_null,
+    "amount": liczba_z_obliczen_amount_lub_null,
     "entryPrice": wartość "Wejście", jeśli nie podano to wpisz null
     "reasoning": "Krótkie wyjaśnienie mapowania symbolu, obliczeń percentage i obliczenia leverage"
   }

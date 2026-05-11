@@ -26,9 +26,8 @@ describe('ParserService - Real API Integration Tests', () => {
             expect(result.leverage).toBe(5);
             expect(result.side).toBe("SELL");
             expect(result.entryPrice).toBe(67846.11);
-            // Logika promptu: BTC = 20, ale w tekście jest "1-3%". 
-            // Jeśli model trzyma się sztywno instrukcji "DLA BTC = 20", wynik powinien być 20.
-            expect(result.percentage).toBe(20); 
+            expect(result.percentage).toBe(8);
+            expect(result.amount).toBeNull();
         } catch (error) {
             console.log("Reasoning for failed test:", result.reasoning);
             throw error;
@@ -45,7 +44,8 @@ describe('ParserService - Real API Integration Tests', () => {
             expect(result.leverage).toBe(15);
             expect(result.side).toBe("SELL");
             expect(result.entryPrice).toBeNull();
-            expect(result.percentage).toBe(1); // Inne = 1
+            expect(result.percentage).toBeNull();
+            expect(result.amount).toBe(100);
         } catch (error) {
             console.log("Reasoning for failed test:", result.reasoning);
             throw error;

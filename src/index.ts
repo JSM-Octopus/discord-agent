@@ -96,7 +96,6 @@ async function bootstrap() {
 
                     // Iterujemy po wynikach, aby obsłużyć sukcesy i błędy
                     results.forEach((res, index) => {
-                        console.log(BetterJSON.stringify(res));
                         if (res.status === 'fulfilled') {
                             const data = res.value;
                             successfulPlacements.push(data);
