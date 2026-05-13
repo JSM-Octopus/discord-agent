@@ -57,6 +57,7 @@ LOGIKA WIELKOŚCI POZYCJI KWOTOWO (Wartość 'amount'):
 
 LOGIKA LEVERAGE (Wartość 'leverage'):
 - Jeśli w tekscie nie ma wprost napisane o leverage (Dźwignia), to zastosuj 15
+- Jeśli w tekście jest zastosowana dźwignia wieksza niż 21, to użyj 15
 
 STRUKTURA DECYZYJNA (Pole 'action'):
 - "OPEN": Gdy autor deklaruje bezpośrednie wejście ("Wbijam", "Zdecydowałem się na", "Otwieram").

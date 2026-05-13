@@ -34,6 +34,24 @@ describe('ParserService - Real API Integration Tests', () => {
         }
     });
 
+    test('Mistake with leverage', async () => {
+        const message = "OTWIERAM POZYCJĘ • SHORT BTCUSDT; Trader: Krypto_Dzik; Instrument: BTCUSDT; Wejście: 67846.11; Wielkość kapitału: 1–3% max; Info: Za chwilę zostaną podane poziomy SL / TP; Dźwignia: 113x; ROI: +0.43%;";
+        
+        const result = await service.parseSignal(message);
+
+        try {
+            expect(result.coin).toBe("BTC");
+            expect(result.leverage).toBe(15);
+            expect(result.side).toBe("SELL");
+            expect(result.entryPrice).toBe(67846.11);
+            expect(result.percentage).toBe(8);
+            expect(result.amount).toBeNull();
+        } catch (error) {
+            console.log("Reasoning for failed test:", result.reasoning);
+            throw error;
+        }
+    });
+
     test('test7 - embed2 (LTC Short)', async () => {
         const message = "OTWIERAM POZYCJĘ • SHORT LTCUSDT; Trader: Krypto_Dzik; Instrument: LTCUSDT; Wielkość kapitału: 1–3% max; Info: Za chwilę zostaną podane poziomy SL / TP; Dźwignia: 15x; ROI: +0.43%;";
         
