@@ -39,7 +39,7 @@ async function bootstrap() {
     // Zmieniona struktura Mapy: CommonId wiadomości -> { moneta, tablica par {maszyna, commonId} }
     const activePositions = new Map<string, {
         coin: string;
-        placements: { xMachineId: string; commonId: string }[]
+        placements: { xMachineId: string; commonId: string; timestamp: number }[]
     }>();
 
     
@@ -88,11 +88,11 @@ async function bootstrap() {
                     const results = await Promise.allSettled(
                         xMachineIds.map(async (xMachineId) => {
                             const commonId = await octopus.executeNewOrderAsync(result, xMachineId);
-                            return { xMachineId, commonId };
+                            return { xMachineId, commonId, timestamp: Date.now() };
                         })
                     );
 
-                    const successfulPlacements: { xMachineId: string; commonId: string }[] = [];
+                    const successfulPlacements: { xMachineId: string; commonId: string; timestamp: number }[] = [];
 
                     // Iterujemy po wynikach, aby obsłużyć sukcesy i błędy
                     results.forEach((res, index) => {
@@ -155,6 +155,11 @@ async function bootstrap() {
                         // Równoległy update wszystkich maszyn
                         const updateResults = await Promise.allSettled(
                             position.placements.map(async (placement) => {
+                                if (result.action === 'CLOSE' && placement.timestamp > Date.now() - 3 * 60 * 1000) {
+                                    pigeon.reportUrgentAsyncSafe(componentName, "EJDZI", `Dzik prawdopodobnie kliknął zamknij pozcję zamiast Stop loss`, '');
+                                    throw new Error('SKIP_TOO_EARLY');
+                                }
+                                
                                 await octopus.handleExistingPosition(
                                     result.action as any,
                                     position.coin,
