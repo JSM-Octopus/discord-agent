@@ -155,7 +155,7 @@ async function bootstrap() {
                         // Równoległy update wszystkich maszyn
                         const updateResults = await Promise.allSettled(
                             position.placements.map(async (placement) => {
-                                if (result.action === 'CLOSE' && placement.timestamp > Date.now() - 3 * 60 * 1000) {
+                                if (['CLOSE_PARTIALLY', 'CLOSE'].includes(result.action) && placement.timestamp > Date.now() - 3 * 60 * 1000) {
                                     pigeon.reportUrgentAsyncSafe(componentName, "EJDZI", `Dzik prawdopodobnie kliknął zamknij pozcję zamiast Stop loss`, '');
                                     throw new Error('SKIP_TOO_EARLY');
                                 }
