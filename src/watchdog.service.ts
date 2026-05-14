@@ -14,7 +14,7 @@ export class WatchdogService {
     private discordChannelTaskWorker: RabbitTaskWorker;
 
     constructor(private rabbitMotokoActor: RabbitMotokoActor, private messagesSummaryService: MessageSummaryService) {
-        this.discordChannelTaskWorker = new RabbitTaskWorker("discord-channel", 2500, rabbitMotokoActor);
+        this.discordChannelTaskWorker = new RabbitTaskWorker("discord-channel", 500, rabbitMotokoActor);
     }
 
     run() {
