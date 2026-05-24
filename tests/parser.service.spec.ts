@@ -24,7 +24,7 @@ describe('ParserService - Real API Integration Tests', () => {
         try {
             expect(result.coin).toBe("BTC");
             expect(result.leverage).toBe(5);
-            expect(result.side).toBe("SELL");
+            expect(result.side).toBe("Sell");
             expect(result.entryPrice).toBe(67846.11);
             expect(result.percentage).toBe(8);
             expect(result.amount).toBeNull();
@@ -42,7 +42,7 @@ describe('ParserService - Real API Integration Tests', () => {
         try {
             expect(result.coin).toBe("BTC");
             expect(result.leverage).toBe(15);
-            expect(result.side).toBe("SELL");
+            expect(result.side).toBe("Sell");
             expect(result.entryPrice).toBe(67846.11);
             expect(result.percentage).toBe(8);
             expect(result.amount).toBeNull();
@@ -60,7 +60,7 @@ describe('ParserService - Real API Integration Tests', () => {
         try {
             expect(result.coin).toBe("LTC");
             expect(result.leverage).toBe(15);
-            expect(result.side).toBe("SELL");
+            expect(result.side).toBe("Sell");
             expect(result.entryPrice).toBeNull();
             expect(result.percentage).toBeNull();
             expect(result.amount).toBe(100);
@@ -73,7 +73,7 @@ describe('ParserService - Real API Integration Tests', () => {
     test('test7 - zamykam 25%', async () => {
         const message = " % TP**Zamykam:** 25%; ; Część pozycji została zamknięta i zysk z tego fragmentu został już zrealizowany. Pozostała część pozycji nadal pracuje zgodnie z planem.; ; Użytkownik: <@831919307977130024>";
         
-        const result = await service.parseSignal(message);
+        const result = await service.getAction(message);
 
         try {
             expect(result.action).toBe("CLOSE_PARTIALLY");
@@ -87,7 +87,7 @@ describe('ParserService - Real API Integration Tests', () => {
     test('test7 - stop loss na BE', async () => {
         const message = "  BE**BE:** 66964.41; ; Pozycja została zabezpieczona. Od tego momentu transakcja nie powinna już przynieść straty — w najgorszym scenariuszu zakończy się na zero.; ; Autor: <@831919307977130024>";
         
-        const result = await service.parseSignal(message);
+        const result = await service.getAction(message);
 
         try {
             expect(result.action).toBe("STOP_LOSS");
