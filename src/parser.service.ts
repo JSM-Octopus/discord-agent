@@ -47,7 +47,12 @@ export class ParserService {
             } else if (["XRP", "BNB", "SOL", "TRX"].includes(actionResult.coin)) {
                 actionResult.percentage = 2;
                 actionResult.amount = null;
-            } else if (["DOGE", "HYPE", "ADA", "ZEC", "BCH", "LINK", "XMR", "TON"].includes(actionResult.coin)) {
+            } else if (
+                [
+                    "DOGE", "HYPE", "ADA", "ZEC", "BCH", "LINK", "LNK", "XMR", "TON", "ZEC", "XLM", "SUI", "LTC",
+                    "AVAX", "HBAR", "NEAR", "CRO", "TAO", "DOT", "ONDO", "OKB", "SKY", "ICP", "AAVE", "POL", "KAS"
+                ].includes(actionResult.coin)
+            ) {
                 actionResult.percentage = 1;
                 actionResult.amount = null;
             } else {
