@@ -42,7 +42,7 @@ async function bootstrap() {
         placements: { xMachineId: string; commonId: string; timestamp: number }[]
     }>();
 
-    
+
 
     const handleError = (title: string, err: any) => {
         console.error(title);
@@ -75,6 +75,15 @@ async function bootstrap() {
         try {
             if (message.channel.id === CHANNELS.DZIK) {
                 let fullText = getContentFromEmbeds(message);
+
+                const content = message.content;
+
+                if (content) {
+                    pigeon.sendDetailsViaEmailAsyncSafe(componentName, "VVDSZ", "Discord content", `content: ${content}`);
+                    xMachineIds.map(async (xMachineId) => {
+                        await octopus.sendNonStandardMessageAsyncSafe(content, xMachineId);
+                    });
+                }
 
                 if (!fullText) {
                     messagesSummaryService.handleIncomingMessage(message);
@@ -159,7 +168,7 @@ async function bootstrap() {
                                     pigeon.reportUrgentAsyncSafe(componentName, "EJDZI", `Dzik prawdopodobnie kliknął zamknij pozcję zamiast Stop loss`, '');
                                     throw new Error('SKIP_TOO_EARLY');
                                 }
-                                
+
                                 await octopus.handleExistingPosition(
                                     result.action as any,
                                     position.coin,

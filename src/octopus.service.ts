@@ -10,7 +10,7 @@ export class OctopusService {
         'Content-Type': 'application/json'
     };
 
-    constructor(private readonly baseUrl: string) {}
+    constructor(private readonly baseUrl: string) { }
 
     /**
      * Otwiera nową pozycję z dynamicznym ID maszyny
@@ -20,11 +20,11 @@ export class OctopusService {
             const { data } = await axios.post(
                 `${this.baseUrl}/investing/orders/new`,
                 signal,
-                { 
-                    headers: { 
-                        ...this.headers, 
-                        'x-machine-id': xMachineId 
-                    } 
+                {
+                    headers: {
+                        ...this.headers,
+                        'x-machine-id': xMachineId
+                    }
                 }
             );
             return data;
@@ -45,12 +45,12 @@ export class OctopusService {
         value?: number
     ): Promise<void> {
         const urlBase = `${this.baseUrl}/investing/positions/${coin}`;
-        const config = { 
-            headers: { 
-                ...this.headers, 
+        const config = {
+            headers: {
+                ...this.headers,
                 'x-machine-id': xMachineId,
-                'x-common-id': commonId 
-            } 
+                'x-common-id': commonId
+            }
         };
 
         try {
@@ -74,6 +74,26 @@ export class OctopusService {
         } catch (error: any) {
             console.error(`[Octopus] Error ${action}:`, error.response?.data || error.message);
             throw error;
+        }
+    }
+
+    public async sendNonStandardMessageAsyncSafe(content: string, xMachineId: string): Promise<void> {
+        try {
+            const { data } = await axios.post(
+                `${this.baseUrl}/investing/discord/non-standard-message`,
+                {
+                    message: content
+                },
+                {
+                    headers: {
+                        ...this.headers,
+                        'x-machine-id': xMachineId
+                    }
+                }
+            );
+            return data;
+        } catch (error: any) {
+            pigeon.reportUrgentAsyncSafe(componentName, "LFWJI", "Couldnt send non standard message from discord for further analyzing", BetterJSON.stringify(error));
         }
     }
 }
