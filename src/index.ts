@@ -105,7 +105,7 @@ async function bootstrap() {
                             const data = res.value;
                             successfulPlacements.push(data);
 
-                            investmentsMotokoActor.addMessageAsyncUnsafe(data.commonId, fullText).catch(err => {
+                            investmentsMotokoActor.addMessageAsyncUnsafe(data.commonId, embedsText).catch(err => {
                                 handleError("Cannot add message", err);
                             });
 
@@ -181,7 +181,7 @@ async function bootstrap() {
 
                             const commonId = placement?.commonId ?? 'NO-COMMON-ID';
 
-                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, fullText).catch(err => {
+                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, embedsText).catch(err => {
                                 handleError("Cannot add message", err);
                             });
 
