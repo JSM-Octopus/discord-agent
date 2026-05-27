@@ -76,17 +76,13 @@ async function bootstrap() {
             if (message.channel.id === CHANNELS.DZIK) {
                 let fullText = getContentFromEmbeds(message);
 
-                const content = message.content;
-
-                if (content) {
-                    pigeon.sendDetailsViaEmailAsyncSafe(componentName, "VVDSZ", "Discord content", `content: ${content}`);
-                    xMachineIds.map(async (xMachineId) => {
-                        await octopus.sendNonStandardMessageAsyncSafe(content, xMachineId);
-                    });
-                }
-
                 if (!fullText) {
                     messagesSummaryService.handleIncomingMessage(message);
+                    
+                    pigeon.sendDetailsViaEmailAsyncSafe(componentName, "VVDSZ", "Discord content", `content: ${message.content}`);
+                    xMachineIds.map(async (xMachineId) => {
+                        await octopus.sendNonStandardMessageAsyncSafe(message.content, xMachineId);
+                    });
                     return;
                 }
 
