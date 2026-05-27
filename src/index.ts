@@ -74,9 +74,9 @@ async function bootstrap() {
     discordClient.on('messageCreate', async (message) => {
         try {
             if (message.channel.id === CHANNELS.DZIK) {
-                let fullText = getContentFromEmbeds(message);
+                let embedsText = getContentFromEmbeds(message);
 
-                if (!fullText) {
+                if (!embedsText) {
                     messagesSummaryService.handleIncomingMessage(message);
                     
                     pigeon.sendDetailsViaEmailAsyncSafe(componentName, "VVDSZ", "Discord content", `content: ${message.content}`);
@@ -86,7 +86,7 @@ async function bootstrap() {
                     return;
                 }
 
-                const result = await parser.parseSignal(fullText);
+                const result = await parser.parseSignal(embedsText);
 
                 if (result.action === 'OPEN') {
                     // Wysyłamy wszystkie zapytania jednocześnie
