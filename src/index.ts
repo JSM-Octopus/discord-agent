@@ -28,7 +28,7 @@ async function bootstrap() {
     const xMachineIds: string[] = [];
 
     // xMachineIds.push('YJZCPI'); // inspiredByDzik
-    xMachineIds.push('XDRLQO'); // inspiredBySliwa (to tylko nazwa maszyny, tak naprawde oba sa na dziku w tym kodzie)
+    xMachineIds.push('INFLU1'); // inspiredBySliwa (to tylko nazwa maszyny, tak naprawde oba sa na dziku w tym kodzie)
 
     const openai = new OpenAI({ apiKey: OPENAI_API });
     const discordClient = new DiscordClient({ checkUpdate: false } as any);
