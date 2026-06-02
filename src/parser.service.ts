@@ -1,4 +1,6 @@
+import { pigeon } from "@jsm-mit/pigeon-package";
 import { OpenAI } from "openai";
+import { componentName } from "./globals.js";
 
 export class ParserService {
     constructor(private openai: OpenAI) { }
@@ -27,6 +29,21 @@ export class ParserService {
             return actionResult;
         } else if (actionResult.action === 'OPEN') {
             actionResult.entryPrice = entryResult.relevant ? (entryResult.entryPrice ? Number(entryResult.entryPrice) : null) : 0;
+
+            if (["Buy", "Sell"].includes(sideResult.side)) {
+                actionResult.side = sideResult.side;
+            } else {
+                if (sideResult.side === "LONG") {
+                    actionResult.side = "Buy";
+                } else if (sideResult.side === "SHORT") {
+                    actionResult.side = "Sell";
+                } else {
+                    pigeon.reportUrgentAsyncSafe(componentName, "HFJUY", "Nie rozpoznano kierunku pozycji. Oczekiwano 'Buy', 'Sell', 'LONG' lub 'SHORT'.", `text: ${text}, sideResult: ${JSON.stringify(sideResult)}`);
+                    actionResult.action = "DO_NOTHING";
+                    return actionResult;
+                }
+            }
+
             actionResult.side = sideResult.side;
             actionResult.coin = pairResult.coin;
 
@@ -145,11 +162,12 @@ export class ParserService {
                         Jesteś precyzyjnym botem transakcyjnym o nazwie "Alpha-Analyzer". 
                         Twoim zadaniem jest wyciągniecie wartości wejściowej.
                         Jeśli treść nie wskazuje na otwarcie nowej pozycji to zwróc obiekt json { "relevant": "false" }
+                        Jeśli treść nie zawiera wartości wejściowej to zwróć null
 
                         Jeśli treść wskazuje na otwarcie nowej pozycji, to postępuj wyszukaj wartość wejściową w tekście i zwróć json:
                         {
                             "relevant": "true",
-                            "entryPrice" "znaleziona wartość"
+                            "entryPrice": "znaleziona wartość | null"
                         }
                     `.trim()
                 },
@@ -177,6 +195,7 @@ export class ParserService {
                         Jesteś precyzyjnym botem transakcyjnym o nazwie "Alpha-Analyzer". 
                         Jeśli treść nie wskazuje na otwarcie nowej pozycji to zwróc obiekt json { "relevant": "false" }
                         Jeśli treść wskazuje na otwarcie nowej pozycji to twoim zadaniem jest wyciągniecie kierunku pozycji. 
+                        Kierunek:
                         SHORT = Sell
                         LONG = Buy
 
@@ -184,7 +203,7 @@ export class ParserService {
 
                         FORMAT WYJŚCIOWY (TYLKO CZYSTY JSON):
                         {
-                            "side": "Kierunek",
+                            "side": "Buy | Sell",
                         }
                     `.trim()
                 },

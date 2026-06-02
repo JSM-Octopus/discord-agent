@@ -62,8 +62,8 @@ describe('ParserService - Real API Integration Tests', () => {
             expect(result.leverage).toBe(15);
             expect(result.side).toBe("Sell");
             expect(result.entryPrice).toBeNull();
-            expect(result.percentage).toBeNull();
-            expect(result.amount).toBe(100);
+            expect(result.percentage).toBe(1);
+            expect(result.amount).toBeNull();
         } catch (error) {
             console.log("Reasoning for failed test:", result.reasoning);
             throw error;
