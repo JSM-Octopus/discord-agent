@@ -79,7 +79,6 @@ async function bootstrap() {
                 if (!embedsText) {
                     messagesSummaryService.handleIncomingMessage(message);
                     
-                    pigeon.sendDetailsViaEmailAsyncSafe(componentName, "VVDSZ", "Discord content", `content: ${message.content}`);
                     xMachineIds.map(async (xMachineId) => {
                         await octopus.sendNonStandardMessageAsyncSafe(message.content, xMachineId);
                     });
@@ -87,6 +86,8 @@ async function bootstrap() {
                 }
 
                 const result = await parser.parseSignal(embedsText);
+
+                // if (['ADA', 'ICP'].includes(result.coin)) return;
 
                 if (result.action === 'OPEN') {
                     // Wysyłamy wszystkie zapytania jednocześnie
