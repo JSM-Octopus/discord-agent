@@ -18,7 +18,8 @@ export class WatchdogService {
     }
 
     run() {
-        this.heartbeat();
+        // not used now - restore for full Octopus working scenario
+        // this.heartbeat();
 
         this.discordChannelTaskWorker.tasks$.subscribe(async task => {
             if (task.payload === "roundtrip test") {
