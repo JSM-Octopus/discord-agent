@@ -1,0 +1,35 @@
+name: Deploy
+on:
+    push:
+        branches: [master]
+    workflow_dispatch:
+
+concurrency:
+    group: deploy-${{ github.repository }}
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        env:
+            APP: discord-agent
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Konfiguracja SSH
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
+                  ssh-keyscan -H "${{ secrets.DROPLET_HOST }}" >> ~/.ssh/known_hosts
+
+            - name: Wysłanie źródeł na dropleta
+              run: |
+                  rsync -az --delete \
+                      --exclude '.git' --exclude 'node_modules' --exclude 'dist' --exclude '.env*' \
+                      -e "ssh -i ~/.ssh/id_ed25519" \
+                      ./ "root@${{ secrets.DROPLET_HOST }}:/opt/src/$APP/"
+
+            - name: Build i przeładowanie kontenera
+              run: |
+                  ssh -i ~/.ssh/id_ed25519 "root@${{ secrets.DROPLET_HOST }}" \
+                      "bash /opt/apps/ci-build.sh $APP"
