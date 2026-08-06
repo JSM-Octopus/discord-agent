@@ -1,12 +1,12 @@
 import { pigeon } from "@jsm-mit/pigeon-package";
 import { RabbitTaskWorker, type AddTaskInput, type TasksActor } from "@jsm-mit/rabbit-motoko-package";
-import { BetterJSON, getEnvVariableUnsafe } from "@jsm-mit/utils-package";
+import { BetterJSON, getEnvVariableSafe } from "@jsm-mit/utils-package";
 import axios from "axios";
 import type { MessageSummaryService } from "./messages-summary.service.js";
 import { CHANNELS } from "./globals.js";
 
-const heartbeatUrl = getEnvVariableUnsafe('HEARTBEAT_URL');
-const heartbeatPassword = getEnvVariableUnsafe('HEARTBEAT_PASSWORD');
+const heartbeatUrl = getEnvVariableSafe('HEARTBEAT_URL', undefined);
+const heartbeatPassword = getEnvVariableSafe('HEARTBEAT_PASSWORD', undefined);
 
 export class WatchdogService {
 
@@ -106,6 +106,12 @@ export class WatchdogService {
     }
 
     private heartbeat() {
+        if (!heartbeatUrl || !heartbeatPassword) {
+            // Sandbox/local runs: without HEARTBEAT_* the loop is skipped.
+            console.log("Heartbeat disabled (no HEARTBEAT_URL/HEARTBEAT_PASSWORD in env)");
+            return;
+        }
+
         const logObj = {
             machineId: "discord-agent",
         }
