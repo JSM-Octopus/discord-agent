@@ -1,5 +1,5 @@
 import { pigeon } from "@jsm-mit/pigeon-package";
-import { RabbitTaskWorker, type AddTaskArgs, type RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
+import { RabbitTaskWorker, type AddTaskInput, type TasksActor } from "@jsm-mit/rabbit-motoko-package";
 import { BetterJSON, getEnvVariableUnsafe } from "@jsm-mit/utils-package";
 import axios from "axios";
 import type { MessageSummaryService } from "./messages-summary.service.js";
@@ -13,8 +13,8 @@ export class WatchdogService {
     private startedAt = Date.now().toString();
     private discordChannelTaskWorker: RabbitTaskWorker;
 
-    constructor(private rabbitMotokoActor: RabbitMotokoActor, private messagesSummaryService: MessageSummaryService) {
-        this.discordChannelTaskWorker = new RabbitTaskWorker("discord-channel", 500, rabbitMotokoActor);
+    constructor(private rabbitTasksActor: TasksActor, private messagesSummaryService: MessageSummaryService) {
+        this.discordChannelTaskWorker = new RabbitTaskWorker("discord-channel", 500, rabbitTasksActor);
     }
 
     run() {
@@ -23,17 +23,16 @@ export class WatchdogService {
 
         this.discordChannelTaskWorker.tasks$.subscribe(async task => {
             if (task.payload === "roundtrip test") {
-                const args: AddTaskArgs = {
+                const args: AddTaskInput = {
                     commonId: "",
                     channel: "notifier",
                     payload: BetterJSON.stringify({
                         to: "common-notifier-admin",
                         text: `roundtrip test successful`
-                    }),
-                    parentIds: []
+                    })
                 };
 
-                this.rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
+                this.rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
             } else if (task.payload === "summary") {
@@ -44,64 +43,60 @@ export class WatchdogService {
                     this.messagesSummaryService.summaryChannelAsyncSafe(CHANNELS.DZIK)
                 ]);
 
-                const args: AddTaskArgs = {
+                const args: AddTaskInput = {
                     commonId: "",
                     channel: "notifier",
                     payload: BetterJSON.stringify({
                         to: "common-notifier-admin",
                         text: `Ogólny: ${summaryOgolny}`
-                    }),
-                    parentIds: []
+                    })
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
+                await this.rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 
-                const args2: AddTaskArgs = {
+                const args2: AddTaskInput = {
                     commonId: "",
                     channel: "notifier",
                     payload: BetterJSON.stringify({
                         to: "common-notifier-admin",
                         text: `Patron: ${summaryPatron}`
-                    }),
-                    parentIds: []
+                    })
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args2).catch((err) => {
+                await this.rabbitTasksActor.addTaskAsyncUnsafe(args2).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 
-                const args3: AddTaskArgs = {
+                const args3: AddTaskInput = {
                     commonId: "",
                     channel: "notifier",
                     payload: BetterJSON.stringify({
                         to: "common-notifier-admin",
                         text: `Krypto: ${summaryKrypto}`
-                    }),
-                    parentIds: []
+                    })
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args3).catch((err) => {
+                await this.rabbitTasksActor.addTaskAsyncUnsafe(args3).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 
-                const args4: AddTaskArgs = {
+                const args4: AddTaskInput = {
                     commonId: "",
                     channel: "notifier",
                     payload: BetterJSON.stringify({
                         to: "common-notifier-admin",
                         text: `Dzik: ${summaryDzik}`
-                    }),
-                    parentIds: []
+                    })
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args4).catch((err) => {
+                await this.rabbitTasksActor.addTaskAsyncUnsafe(args4).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
             }
 
-            await this.rabbitMotokoActor.completeTaskAsyncUnsafe({
+            await this.rabbitTasksActor.completeTaskAsyncUnsafe({
                 id: task.id,
                 message: ""
             });
@@ -119,17 +114,16 @@ export class WatchdogService {
             try {
                 await axios.post(`${heartbeatUrl}/heartbeat`, logObj, { headers: { 'x-password': heartbeatPassword, 'x-app-start-timestamp': this.startedAt } });
             } catch (err) {
-                const args: AddTaskArgs = {
+                const args: AddTaskInput = {
                     commonId: "",
                     channel: "notifier",
                     payload: BetterJSON.stringify({
                         to: "common-notifier-admin",
                         text: `Heartbeat error from Discord Agent`
-                    }),
-                    parentIds: []
+                    })
                 };
 
-                await this.rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
+                await this.rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
                     console.error(BetterJSON.stringify(err));
                 });
 

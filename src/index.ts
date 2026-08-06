@@ -2,7 +2,7 @@ import { OpenAI } from "openai";
 import { Client as DiscordClient } from 'discord.js-selfbot-v13';
 import { ParserService } from './parser.service.js';
 import { OctopusService } from './octopus.service.js';
-import { RabbitMotokoActor } from "@jsm-mit/rabbit-motoko-package";
+import { TasksActor } from "@jsm-mit/rabbit-motoko-package";
 import { BetterJSON, getEnvVariableUnsafe, getIdentityFromPem } from "@jsm-mit/utils-package";
 import { pigeon } from "@jsm-mit/pigeon-package";
 import { WatchdogService } from "./watchdog.service.js";
@@ -17,7 +17,13 @@ async function bootstrap() {
     const identityPem: string = getEnvVariableUnsafe('IDENTITY_PEM');
     const identity = getIdentityFromPem(identityPem);
 
-    const rabbitMotokoActor = new RabbitMotokoActor(rabbitMotokoCanisterId, identity);
+    // Logged so the principal can be enrolled on rabbit channels (grant/signup) — the
+    // deployed identity of this agent is not known locally (placeholder PEM in .env),
+    // and under the v2 permission model it needs canAddTasks on `notifier` and
+    // canWorkOnTasks on `discord-channel` unless it is an admin.
+    console.log(`Rabbit identity principal: ${identity.getPrincipal().toText()}`);
+
+    const rabbitTasksActor = new TasksActor(rabbitMotokoCanisterId, identity);
 
     const investmentsMotokoActor = new InvestmentsMotokoActor(investmentsMotokoCanisterId, identity);
 
@@ -59,11 +65,10 @@ async function bootstrap() {
         payload: BetterJSON.stringify({
             to: "common-notifier-admin",
             text: welcomeText
-        }),
-        parentIds: [] as any
+        })
     };
 
-    rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
+    rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
         handleError('Couldnt add task for Common Notifier, channel notifier', err);
     });
 
@@ -122,11 +127,10 @@ async function bootstrap() {
                                 payload: BetterJSON.stringify({
                                     to: "common-notifier-admin",
                                     text: body
-                                }),
-                                parentIds: [] as any
+                                })
                             };
 
-                            rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
+                            rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
                                 handleError('Couldnt add task for Common Notifier, channel notifier', err);
                             });
                         } else {
@@ -137,11 +141,10 @@ async function bootstrap() {
                                 payload: BetterJSON.stringify({
                                     to: "common-notifier-admin",
                                     text: body
-                                }),
-                                parentIds: [] as any
+                                })
                             };
 
-                            rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
+                            rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
                                 handleError('Couldnt add task for Common Notifier, channel notifier', err);
                             });
                         }
@@ -198,11 +201,10 @@ async function bootstrap() {
                                     payload: BetterJSON.stringify({
                                         to: "common-notifier-admin",
                                         text: body
-                                    }),
-                                    parentIds: [] as any
+                                    })
                                 };
 
-                                rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
+                                rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
                                     handleError('Couldnt add task for Common Notifier, channel 1', err);
                                 });
                             } else {
@@ -213,11 +215,10 @@ async function bootstrap() {
                                     payload: BetterJSON.stringify({
                                         to: "common-notifier-admin",
                                         text: body
-                                    }),
-                                    parentIds: [] as any
+                                    })
                                 };
 
-                                rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
+                                rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
                                     handleError('Couldnt add task for Common Notifier, channel 1', err);
                                 });
                             }
@@ -241,7 +242,7 @@ async function bootstrap() {
                 //         parentIds: [] as any
                 //     };
 
-                //     rabbitMotokoActor.addTaskAsync(args, true).catch((err) => {
+                //     rabbitTasksActor.addTaskAsync(args, true).catch((err) => {
                 //         handleError('Couldnt add task for Common Notifier, channel notifier', err);
                 //     });
                 // }
@@ -254,11 +255,10 @@ async function bootstrap() {
                 payload: BetterJSON.stringify({
                     to: "common-notifier-admin",
                     text: body
-                }),
-                parentIds: [] as any
+                })
             };
 
-            rabbitMotokoActor.addTaskAsyncUnsafe(args).catch((err) => {
+            rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
                 handleError('Couldnt add task for Common Notifier, channel notifier', err);
             });
         }
@@ -266,7 +266,7 @@ async function bootstrap() {
 
     discordClient.login(DISCORD_TOKEN);
 
-    const watchdog = new WatchdogService(rabbitMotokoActor, messagesSummaryService);
+    const watchdog = new WatchdogService(rabbitTasksActor, messagesSummaryService);
     watchdog.run();
 }
 
