@@ -9,7 +9,7 @@ import { WatchdogService } from "./watchdog.service.js";
 import { InvestmentsMotokoActor } from "@jsm-mit/investments-motoko-package";
 import { MessageSummaryService } from "./messages-summary.service.js";
 import { CHANNELS, componentName } from "./globals.js";
-import { getContentFromEmbeds } from "./others.js";
+import { enrichWithReplyContext, getContentFromEmbeds } from "./others.js";
 
 async function bootstrap() {
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe('RABBIT_MOTOKO_CANISTER_ID');
@@ -83,9 +83,11 @@ async function bootstrap() {
 
                 if (!embedsText) {
                     messagesSummaryService.handleIncomingMessage(message);
-                    
+
+                    const content = await enrichWithReplyContext(message, activePositions);
+
                     xMachineIds.map(async (xMachineId) => {
-                        await octopus.sendNonStandardMessageAsyncSafe(message.content, xMachineId);
+                        await octopus.sendNonStandardMessageAsyncSafe(content, xMachineId);
                     });
                     return;
                 }
