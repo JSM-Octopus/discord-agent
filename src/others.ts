@@ -21,29 +21,50 @@ export function getContent(message: Message<boolean>) {
 
 const REPLY_CONTEXT_MAX_LENGTH = 200;
 
-// Best-effort: returns message.content prefixed with the quoted message's context
-// when the message is a Discord reply, so downstream AI analysis can attribute the
-// action to a coin. Prefix is Polish on purpose — it lands in a Polish-language
-// transcript analyzed by Polish prompts. Never throws; falls back to bare content.
-export async function enrichWithReplyContext(
+// Wire-contract metadata resolved from a Discord reply reference. Consumed by
+// influ-node for coin attribution (replyCoin beats everything else there).
+export interface ReplyContext {
+    replyCoin?: string;
+    replyText?: string;
+}
+
+// Best-effort: resolves who the message replies to — a known open-position signal
+// (replyCoin, via the activePositions map) or any other quoted message (replyText,
+// channel cache first, then one fetchReference API call). Never throws; returns {}
+// when the message is not a reply or the quoted message is unavailable.
+export async function getReplyContext(
     message: Message<boolean>,
     openedSignals: ReadonlyMap<string, { coin: string }>
-): Promise<string> {
+): Promise<ReplyContext> {
     const refId = message.reference?.messageId;
-    if (!refId) return message.content;
+    if (!refId) return {};
 
     const openedSignal = openedSignals.get(refId);
     if (openedSignal) {
-        return `[odpowiedź na sygnał otwarcia pozycji ${openedSignal.coin}] ${message.content}`;
+        return { replyCoin: openedSignal.coin };
     }
 
     try {
         const referenced = message.channel.messages.cache.get(refId) ?? await message.fetchReference();
         const referencedText = getContent(referenced).trim();
-        if (!referencedText) return message.content;
+        if (!referencedText) return {};
 
-        return `[odpowiedź na: "${referencedText.slice(0, REPLY_CONTEXT_MAX_LENGTH)}"] ${message.content}`;
+        return { replyText: referencedText.slice(0, REPLY_CONTEXT_MAX_LENGTH) };
     } catch {
-        return message.content;
+        return {};
     }
+}
+
+// Prefix is Polish on purpose — the string lands in influ-node's Polish-language
+// transcript analyzed by Polish prompts.
+export function buildEnrichedContent(content: string, ctx: ReplyContext): string {
+    if (ctx.replyCoin) {
+        return `[odpowiedź na sygnał otwarcia pozycji ${ctx.replyCoin}] ${content}`;
+    }
+
+    if (ctx.replyText) {
+        return `[odpowiedź na: "${ctx.replyText}"] ${content}`;
+    }
+
+    return content;
 }

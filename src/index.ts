@@ -9,7 +9,7 @@ import { WatchdogService } from "./watchdog.service.js";
 import { InvestmentsMotokoActor } from "@jsm-mit/investments-motoko-package";
 import { MessageSummaryService } from "./messages-summary.service.js";
 import { CHANNELS, componentName } from "./globals.js";
-import { enrichWithReplyContext, getContentFromEmbeds } from "./others.js";
+import { buildEnrichedContent, getContentFromEmbeds, getReplyContext } from "./others.js";
 
 async function bootstrap() {
     const rabbitMotokoCanisterId: string = getEnvVariableUnsafe('RABBIT_MOTOKO_CANISTER_ID');
@@ -84,19 +84,35 @@ async function bootstrap() {
                 if (!embedsText) {
                     messagesSummaryService.handleIncomingMessage(message);
 
-                    const content = await enrichWithReplyContext(message, activePositions);
+                    const ctx = await getReplyContext(message, activePositions);
+                    const enriched = buildEnrichedContent(message.content, ctx);
 
                     xMachineIds.map(async (xMachineId) => {
-                        await octopus.sendNonStandardMessageAsyncSafe(content, xMachineId);
+                        await octopus.sendNonStandardMessageAsyncSafe({
+                            message: enriched,
+                            source: 'text',
+                            ...ctx,
+                            discordMessageId: message.id,
+                        }, xMachineId);
                     });
                     return;
                 }
 
-                const result = await parser.parseSignal(embedsText);
+                // Routing gate, not analysis: opening positions is the only action this
+                // agent still owns — every other embed goes raw to influ-node. On gate
+                // failure we forward too; influ-node refuses an OPEN parse visibly.
+                let actionResult: any = {};
+                try {
+                    actionResult = await parser.getAction(embedsText);
+                } catch (err) {
+                    handleError('Couldnt classify embed action - forwarding to influ-node', err);
+                }
 
-                // if (['ADA', 'ICP'].includes(result.coin)) return;
+                if (actionResult.action === 'OPEN') {
+                    const result = await parser.parseSignal(embedsText, actionResult);
 
-                if (result.action === 'OPEN') {
+                    // if (['ADA', 'ICP'].includes(result.coin)) return;
+
                     // Wysyłamy wszystkie zapytania jednocześnie
                     const results = await Promise.allSettled(
                         xMachineIds.map(async (xMachineId) => {
@@ -158,76 +174,20 @@ async function bootstrap() {
                             placements: successfulPlacements
                         });
                     }
-                } else if (['CLOSE_PARTIALLY', 'STOP_LOSS', 'CLOSE'].includes(result.action)) {
-                    const refId = message.reference?.messageId;
-                    const position = refId ? activePositions.get(refId) : null;
+                } else {
+                    // Everything except opening a position is influ-node's job now
+                    // (execution, guards, on-chain audit and WhatsApp notifications
+                    // all moved there) — forward the raw embed with reply metadata.
+                    const ctx = await getReplyContext(message, activePositions);
 
-                    if (position) {
-                        // Równoległy update wszystkich maszyn
-                        const updateResults = await Promise.allSettled(
-                            position.placements.map(async (placement) => {
-                                if (['CLOSE_PARTIALLY', 'CLOSE'].includes(result.action) && placement.timestamp > Date.now() - 3 * 60 * 1000) {
-                                    pigeon.reportUrgentAsyncSafe(componentName, "EJDZI", `Dzik prawdopodobnie kliknął zamknij pozcję zamiast Stop loss`, '');
-                                    throw new Error('SKIP_TOO_EARLY');
-                                }
-
-                                await octopus.handleExistingPosition(
-                                    result.action as any,
-                                    position.coin,
-                                    placement.commonId,
-                                    placement.xMachineId,
-                                    result.value
-                                );
-                                return placement;
-                            })
-                        );
-
-                        updateResults.forEach((res, index) => {
-                            const placement = position.placements[index];
-
-                            const commonId = placement?.commonId ?? 'NO-COMMON-ID';
-
-                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, embedsText).catch(err => {
-                                handleError("Cannot add message", err);
-                            });
-
-                            investmentsMotokoActor.addMessageAsyncUnsafe(commonId, BetterJSON.stringify(result)).catch(err => {
-                                handleError("Cannot add message", err);
-                            });
-
-                            if (res.status === 'fulfilled') {
-                                const body = `⚡ *UPDATING* | ${result.action} | ${position.coin}\nCommonId: ${placement?.commonId}\nMachine: ${placement?.xMachineId}\n`;
-                                const args = {
-                                    commonId: placement?.commonId ?? "",
-                                    channel: "notifier",
-                                    payload: BetterJSON.stringify({
-                                        to: "common-notifier-admin",
-                                        text: body
-                                    })
-                                };
-
-                                rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
-                                    handleError('Couldnt add task for Common Notifier, channel 1', err);
-                                });
-                            } else {
-                                const body = `❌ *UPDATE FAILED* | ${result.action} | ${position.coin}\nCommonId: ${placement?.commonId}\nMachine: ${placement?.xMachineId}\nReason: ${res.reason?.message || res.reason}`;
-                                const args = {
-                                    commonId: placement?.commonId ?? "",
-                                    channel: "notifier",
-                                    payload: BetterJSON.stringify({
-                                        to: "common-notifier-admin",
-                                        text: body
-                                    })
-                                };
-
-                                rabbitTasksActor.addTaskAsyncUnsafe(args).catch((err) => {
-                                    handleError('Couldnt add task for Common Notifier, channel 1', err);
-                                });
-                            }
-                        });
-                    } else {
-                        console.log('Brak otwartej pozycji');
-                    }
+                    xMachineIds.map(async (xMachineId) => {
+                        await octopus.sendNonStandardMessageAsyncSafe({
+                            message: embedsText,
+                            source: 'embed',
+                            ...ctx,
+                            discordMessageId: message.id,
+                        }, xMachineId);
+                    });
                 }
             }
             else if ([CHANNELS.OGOLNY, CHANNELS.KRYPTO, CHANNELS.PATRON].includes(message.channel.id)) {

@@ -1,4 +1,4 @@
-import { enrichWithReplyContext } from '../src/others.js';
+import { buildEnrichedContent, getReplyContext } from '../src/others.js';
 import type { Message } from 'discord.js-selfbot-v13';
 
 const stubMessage = (overrides: any): Message<boolean> => ({
@@ -11,46 +11,46 @@ const stubMessage = (overrides: any): Message<boolean> => ({
 
 const noSignals = new Map<string, { coin: string }>();
 
-describe('enrichWithReplyContext', () => {
-    it('returns bare content when the message is not a reply', async () => {
-        const result = await enrichWithReplyContext(stubMessage({}), noSignals);
+describe('getReplyContext', () => {
+    test('returns empty context when the message is not a reply', async () => {
+        const ctx = await getReplyContext(stubMessage({}), noSignals);
 
-        expect(result).toBe('Realizuje kolejne 25%');
+        expect(ctx).toEqual({});
     });
 
-    it('uses the opened-signal fast path when the replied-to message opened a position', async () => {
+    test('returns replyCoin via the opened-signal fast path', async () => {
         const message = stubMessage({ reference: { messageId: 'msg-1' } });
         const signals = new Map([['msg-1', { coin: 'BTC' }]]);
 
-        const result = await enrichWithReplyContext(message, signals);
+        const ctx = await getReplyContext(message, signals);
 
-        expect(result).toBe('[odpowiedź na sygnał otwarcia pozycji BTC] Realizuje kolejne 25%');
+        expect(ctx).toEqual({ replyCoin: 'BTC' });
     });
 
-    it('inlines the quoted message from the channel cache when it is not a known signal', async () => {
+    test('returns replyText from the channel cache when not a known signal', async () => {
         const cache = new Map([['msg-2', { content: 'Otwieram pozycję: BTCUSDT LONG @everyone', embeds: [] }]]);
         const message = stubMessage({
             reference: { messageId: 'msg-2' },
             channel: { messages: { cache } },
         });
 
-        const result = await enrichWithReplyContext(message, noSignals);
+        const ctx = await getReplyContext(message, noSignals);
 
-        expect(result).toBe('[odpowiedź na: "Otwieram pozycję: BTCUSDT LONG @everyone"] Realizuje kolejne 25%');
+        expect(ctx).toEqual({ replyText: 'Otwieram pozycję: BTCUSDT LONG @everyone' });
     });
 
-    it('falls back to fetchReference when the quoted message is not cached', async () => {
+    test('falls back to fetchReference when the quoted message is not cached', async () => {
         const message = stubMessage({
             reference: { messageId: 'msg-3' },
             fetchReference: async () => ({ content: 'Otwieram pozycję: ETHUSDT SHORT', embeds: [] }),
         });
 
-        const result = await enrichWithReplyContext(message, noSignals);
+        const ctx = await getReplyContext(message, noSignals);
 
-        expect(result).toBe('[odpowiedź na: "Otwieram pozycję: ETHUSDT SHORT"] Realizuje kolejne 25%');
+        expect(ctx).toEqual({ replyText: 'Otwieram pozycję: ETHUSDT SHORT' });
     });
 
-    it('reads embeds when the quoted message has no plain content', async () => {
+    test('reads embeds when the quoted message has no plain content', async () => {
         const message = stubMessage({
             reference: { messageId: 'msg-4' },
             fetchReference: async () => ({
@@ -59,31 +59,51 @@ describe('enrichWithReplyContext', () => {
             }),
         });
 
-        const result = await enrichWithReplyContext(message, noSignals);
+        const ctx = await getReplyContext(message, noSignals);
 
-        expect(result).toBe('[odpowiedź na: "| Title: Sygnał | Desc: BTCUSDT LONG"] Realizuje kolejne 25%');
+        expect(ctx).toEqual({ replyText: '| Title: Sygnał | Desc: BTCUSDT LONG' });
     });
 
-    it('truncates long quoted content to 200 characters', async () => {
-        const longText = 'x'.repeat(500);
+    test('truncates long quoted content to 200 characters', async () => {
         const message = stubMessage({
             reference: { messageId: 'msg-5' },
-            fetchReference: async () => ({ content: longText, embeds: [] }),
+            fetchReference: async () => ({ content: 'x'.repeat(500), embeds: [] }),
         });
 
-        const result = await enrichWithReplyContext(message, noSignals);
+        const ctx = await getReplyContext(message, noSignals);
 
-        expect(result).toBe(`[odpowiedź na: "${'x'.repeat(200)}"] Realizuje kolejne 25%`);
+        expect(ctx).toEqual({ replyText: 'x'.repeat(200) });
     });
 
-    it('returns bare content when the quoted message cannot be fetched (deleted)', async () => {
+    test('returns empty context when the quoted message cannot be fetched (deleted)', async () => {
         const message = stubMessage({
             reference: { messageId: 'msg-6' },
             fetchReference: async () => { throw new Error('Unknown Message'); },
         });
 
-        const result = await enrichWithReplyContext(message, noSignals);
+        const ctx = await getReplyContext(message, noSignals);
 
-        expect(result).toBe('Realizuje kolejne 25%');
+        expect(ctx).toEqual({});
+    });
+});
+
+describe('buildEnrichedContent', () => {
+    test('returns bare content for an empty context', () => {
+        expect(buildEnrichedContent('Realizuje kolejne 25%', {})).toBe('Realizuje kolejne 25%');
+    });
+
+    test('prefixes with the opened-signal coin', () => {
+        expect(buildEnrichedContent('Realizuje kolejne 25%', { replyCoin: 'BTC' }))
+            .toBe('[odpowiedź na sygnał otwarcia pozycji BTC] Realizuje kolejne 25%');
+    });
+
+    test('prefixes with the quoted text', () => {
+        expect(buildEnrichedContent('Realizuje kolejne 25%', { replyText: 'Otwieram pozycję: BTCUSDT LONG @everyone' }))
+            .toBe('[odpowiedź na: "Otwieram pozycję: BTCUSDT LONG @everyone"] Realizuje kolejne 25%');
+    });
+
+    test('prefers replyCoin over replyText', () => {
+        expect(buildEnrichedContent('ok', { replyCoin: 'ETH', replyText: 'cokolwiek' }))
+            .toBe('[odpowiedź na sygnał otwarcia pozycji ETH] ok');
     });
 });

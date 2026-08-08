@@ -9,9 +9,9 @@ export class ParserService {
      * Główna metoda parsująca sygnały tradingowe z Discorda.
      * Przyjmuje surowy tekst (połączony content + embedy).
      */
-    public async parseSignal(text: string): Promise<any> {
+    public async parseSignal(text: string, precomputedActionResult?: any): Promise<any> {
         const results = await Promise.allSettled([
-            this.getAction(text),
+            precomputedActionResult ? Promise.resolve(precomputedActionResult) : this.getAction(text),
             this.getEntry(text),
             this.getSide(text),
             this.getTradingPair(text),

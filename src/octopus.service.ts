@@ -34,56 +34,11 @@ export class OctopusService {
         }
     }
 
-    /**
-     * Uniwersalna metoda do modyfikacji pozycji z dynamicznym ID maszyny
-     */
-    public async handleExistingPosition(
-        action: 'CLOSE_PARTIALLY' | 'STOP_LOSS' | 'CLOSE',
-        coin: string,
-        commonId: string,
-        xMachineId: string,
-        value?: number
-    ): Promise<void> {
-        const urlBase = `${this.baseUrl}/investing/positions/${coin}`;
-        const config = {
-            headers: {
-                ...this.headers,
-                'x-machine-id': xMachineId,
-                'x-common-id': commonId
-            }
-        };
-
-        try {
-            switch (action) {
-                case 'CLOSE':
-                    await axios.post(`${urlBase}/close`, undefined, config);
-                    break;
-                case 'CLOSE_PARTIALLY':
-                    await axios.post(`${urlBase}/logic-box`, {
-                        type: 'CLOSE_POSITION_PARTIALLY',
-                        positionClosePercentage: value,
-                    }, config);
-                    break;
-                case 'STOP_LOSS':
-                    await axios.post(`${urlBase}/logic-box`, {
-                        type: 'STOP_LOSS',
-                        stopLoss: value,
-                    }, config);
-                    break;
-            }
-        } catch (error: any) {
-            console.error(`[Octopus] Error ${action}:`, error.response?.data || error.message);
-            throw error;
-        }
-    }
-
-    public async sendNonStandardMessageAsyncSafe(content: string, xMachineId: string): Promise<void> {
+    public async sendNonStandardMessageAsyncSafe(body: NonStandardMessageBody, xMachineId: string): Promise<void> {
         try {
             const { data } = await axios.post(
                 `${this.baseUrl}/investing/discord/non-standard-message`,
-                {
-                    message: content
-                },
+                body,
                 {
                     headers: {
                         ...this.headers,
@@ -96,4 +51,14 @@ export class OctopusService {
             pigeon.reportUrgentAsyncSafe(componentName, "LFWJI", "Couldnt send non standard message from discord for further analyzing", BetterJSON.stringify(error));
         }
     }
+}
+
+// Wire contract shared with octopus-backend (passthrough) and influ-node (consumer).
+// `source` absent means 'text' on the influ-node side.
+export interface NonStandardMessageBody {
+    message: string;
+    source?: 'embed' | 'text';
+    replyCoin?: string;
+    replyText?: string;
+    discordMessageId?: string;
 }
