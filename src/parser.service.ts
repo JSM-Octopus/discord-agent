@@ -56,10 +56,10 @@ export class ParserService {
             }
 
             if (actionResult.coin === "BTC") {
-                actionResult.percentage = 8;
+                actionResult.percentage = 3;
                 actionResult.amount = null;
             } else if (actionResult.coin === "ETH") {
-                actionResult.percentage = 4;
+                actionResult.percentage = 2.5;
                 actionResult.amount = null;
             } else if (["XRP", "BNB", "SOL", "TRX"].includes(actionResult.coin)) {
                 actionResult.percentage = 2;
